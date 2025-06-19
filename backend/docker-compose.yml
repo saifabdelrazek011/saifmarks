@@ -1,0 +1,15 @@
+services:
+  saifDB-dev:
+    image: postgres:13
+    container_name: saifmarks_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: saifmarks
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
