@@ -8,7 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { BookmarkService } from './bookmark.service';
-import { GetUser } from 'src/auth/decorator/get-user.decorator';
+import { GetUser } from '../auth/decorator/get-user.decorator';
 import { BookmarkDto } from './dto';
 
 @Controller('bookmark')

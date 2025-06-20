@@ -3,7 +3,8 @@ import { AppModule } from '../src/app.module';
 import * as pactum from 'pactum';
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { AuthDto } from 'src/auth/dto';
+import { AuthDto } from '../src/auth/dto';
+import { BookmarkDto } from '../src/bookmark/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -116,36 +117,47 @@ describe('App e2e', () => {
           .post('/auth/signin')
           .withBody(dto)
           .expectStatus(201)
-          .stores('access_token', 'access_token');
+          .stores('userAT', 'access_token');
       });
     });
   });
 
   describe('User', () => {
     describe('Get me', () => {
-      const access_token = pactum.spec();
-      it('should get current user', () => {
-        console.log('Access Token:', access_token);
+      it('should throw if not authenticated', () => {
+        return pactum.spec().get('/user/me').expectStatus(401);
+      });
+      it('should throw if invalid token', () => {
         return pactum
           .spec()
           .get('/user/me')
-          .withHeaders({ Authorization: `Bearer ${access_token}` })
+          .withHeaders({ Authorization: `Bearer invalidToken` })
+          .expectStatus(401);
+      });
+      it('should get current user', () => {
+        return pactum
+          .spec()
+          .get('/user/me')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
           .expectStatus(200);
       });
     });
   });
 
   describe('Bookmarks', () => {
-    describe('Create bookmark', () => {});
+    const bookmarkDto: BookmarkDto = {
+      title: 'Example Bookmark',
+      url: 'https://example.com',
+    };
 
-    describe('Get bookmark', () => {});
+    describe('Create Bookmark', () => {});
 
-    describe('Get bookmark by id', () => {});
+    describe('Get Bookmarks', () => {});
 
-    describe('Edit bookmark', () => {});
+    describe('Get bookmark by ID', () => {});
 
-    describe('Delete bookmark', () => {});
+    describe('Update Bookmark', () => {});
 
-    describe('Create bookmark', () => {});
+    describe('Delete Bookmark', () => {});
   });
 });

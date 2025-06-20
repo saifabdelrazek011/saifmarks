@@ -8,7 +8,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BookmarkDto } from './dto';
+import { JwtGuard } from '../auth/guard';
+import { UseGuards } from '@nestjs/common';
 
+@UseGuards(JwtGuard)
 @Injectable()
 export class BookmarkService {
   constructor(private prisma: PrismaService) {
@@ -216,46 +219,21 @@ export class BookmarkService {
   }
 
   async deleteBookmark(userId: string, bookmarkId: string) {
-    try {
-      // Ensure PrismaService is initialized
-      if (!this.prisma) {
-        throw new Error('PrismaService is not initialized');
-      }
-      // Validate the bookmarkId
-      if (!bookmarkId) {
-        throw new BadRequestException(
-          'Bookmark ID is required to delete a bookmark',
-        );
-      }
-
-      // Check if the user is authenticated
-      if (!userId) {
-        throw new UnauthorizedException('User is not authenticated');
-      }
-
-      // Check if the bookmark exists and belongs to the authenticated user
-      const existingBookmark = await this.prisma.bookmark.findUnique({
-        where: { id: bookmarkId, userId },
-      });
-
-      if (!existingBookmark) {
-        throw new NotFoundException(
-          'Bookmark not found or does not belong to the user',
-        );
-      }
-
-      // Delete the bookmark for the authenticated user
-      const deletedBookmark = await this.prisma.bookmark.delete({
-        where: { id: bookmarkId, userId },
-      });
-
-      if (!deletedBookmark) {
-        throw new Error('Failed to delete bookmark');
-      }
-
-      return { success: true, message: 'Bookmark deleted successfully' };
-    } catch (error) {
-      throw new Error(`Error deleting bookmark: ${error.message}`);
+    if (!userId) {
+      throw new ForbiddenException('User is not authenticated');
     }
+    if (!bookmarkId || bookmarkId === 'null' || bookmarkId === 'invalidId') {
+      throw new BadRequestException('Bookmark id is invalid');
+    }
+    const bookmark = await this.prisma.bookmark.findUnique({
+      where: { id: bookmarkId, userId },
+    });
+    if (!bookmark) {
+      throw new NotFoundException('Bookmark not found');
+    }
+    await this.prisma.bookmark.delete({
+      where: { id: bookmarkId },
+    });
+    return;
   }
 }

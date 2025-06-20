@@ -9,7 +9,7 @@ import * as argon from 'argon2'; // Ensure you have argon2 installed
 import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library'; // Ensure you have @prisma/client installed
 import { JwtService } from '@nestjs/jwt'; // Ensure you have @nestjs/jwt installed
 import { ConfigService } from '@nestjs/config'; // Ensure you have @nestjs/config installed
-import { JWTPayloadType, SignTokenPromise } from '../types'; // Adjust the import path as necessary
+import { JWTPayloadType } from '../types'; // Adjust the import path as necessary
 import { emailRegex, passwordRegex } from '../regex';
 
 @Injectable({})
@@ -89,72 +89,104 @@ export class AuthService {
   }
 
   async signin(dto: AuthDto) {
-    // Validate the input data
-    if (!dto || !dto.email || !dto.password) {
-      throw new BadRequestException('Email and password are required');
-    }
+    try {
+      // Validate the input data
+      if (!dto || !dto.email || !dto.password) {
+        throw new BadRequestException('Email and password are required');
+      }
 
-    // Check if regex is defined
-    if (!emailRegex) {
-      throw new Error('Email regex is not defined');
-    }
-    // check if the email is valid
-    if (!emailRegex.test(dto.email)) {
-      throw new BadRequestException('Invalid email format');
-    }
+      // Check if regex is defined
+      if (!emailRegex) {
+        throw new Error('Email regex is not defined');
+      }
+      // check if the email is valid
+      if (!emailRegex.test(dto.email)) {
+        throw new BadRequestException('Invalid email format');
+      }
 
-    // Find the user by email
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-      select: {
-        id: true,
-        email: true,
-        hashedPassword: true,
-      },
-    });
-    // if user does not exist, throw an error
-    if (!user) {
-      throw new ForbiddenException('Credentials incorrect');
+      // Find the user by email
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email: dto.email,
+        },
+        select: {
+          id: true,
+          email: true,
+          hashedPassword: true,
+        },
+      });
+      // if user does not exist, throw an error
+      if (!user) {
+        throw new ForbiddenException('Credentials incorrect');
+      }
+
+      // compare the password with the hashed password
+      const isPasswordValid = await argon.verify(
+        user.hashedPassword,
+        dto.password,
+      );
+
+      // if password is incorrect, throw an error
+      if (!isPasswordValid) {
+        throw new ForbiddenException('Credentials incorrect');
+      }
+
+      // if everything is correct, return the user without the hashed password
+      return {
+        success: true,
+        message: 'User authenticated',
+        access_token: await this.signToken(user.id, user.email),
+      };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ForbiddenException('Credentials taken');
+        }
+      }
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new Error('Signin failed');
     }
-
-    // compare the password with the hashed password
-    const isPasswordValid = await argon.verify(
-      user.hashedPassword,
-      dto.password,
-    );
-
-    // if password is incorrect, throw an error
-    if (!isPasswordValid) {
-      throw new ForbiddenException('Credentials incorrect');
-    }
-
-    // if everything is correct, return the user without the hashed password
-    return {
-      success: true,
-      message: 'User authenticated',
-      access_token: await this.signToken(user.id, user.email),
-    };
   }
 
   async signToken(userId: string, email: string): Promise<string> {
-    const data: JWTPayloadType = {
-      sub: userId,
-      email,
-    };
+    try {
+      if (!userId || !email) {
+        throw new BadRequestException(
+          'User ID and email are required to sign a token',
+        );
+      }
 
-    const secret = this.config.get<string>('JWT_SECRET');
+      // Validate the userId and email
+      if (typeof userId !== 'string' || typeof email !== 'string') {
+        throw new BadRequestException('Invalid user ID or email format');
+      }
 
-    if (!secret) {
-      throw new Error('JWT_SECRET is not defined in the environment variables');
+      const data: JWTPayloadType = {
+        sub: userId,
+        email,
+      };
+
+      const secret = this.config.get<string>('JWT_SECRET');
+
+      if (!secret) {
+        throw new Error(
+          'JWT_SECRET is not defined in the environment variables',
+        );
+      }
+
+      const token = await this.jwt.signAsync(data, {
+        expiresIn: '7d',
+        secret: process.env.JWT_SECRET,
+      });
+
+      return token;
+    } catch (error) {
+      throw new Error(`Error signing token: ${error.message}`);
     }
-
-    const token = await this.jwt.signAsync(data, {
-      expiresIn: '7d',
-      secret: process.env.JWT_SECRET,
-    });
-
-    return token;
   }
 }
