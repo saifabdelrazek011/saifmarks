@@ -11,6 +11,11 @@
     "db:dev:rm": "docker compose -f 'docker-compose.yml' rm 'saifDB-dev' -s -v",
     "db:dev:up": "docker compose -f 'docker-compose.yml' up 'saifDB-dev' -d",
     "db:dev:restart": "npm run db:dev:down && npm run db:dev:rm && npm run db:dev:up && sleep 1 && npm run prisma:dev:deploy",
+    "prisma:test:deploy": "dotenv -e .env.test -- prisma migrate deploy",
+    "db:test:down": "dotenv -e .env.test -- docker compose -f 'docker-compose.yml' down 'saifDB-test'",
+    "db:test:rm": "dotenv -e .env.test -- docker compose -f 'docker-compose.yml' rm 'saifDB-test' -s -v",
+    "db:test:up": "dotenv -e .env.test -- docker compose -f 'docker-compose.yml' up 'saifDB-test' -d",
+    "db:test:restart": "npm run db:test:down && npm run db:test:rm && npm run db:test:up && sleep 1 && npm run prisma:test:deploy",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -22,7 +27,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "pretest:e2e": "npm run db:test:restart",
+    "test:e2e": "dotenv -e .env.test -- jest --watch --no-cache --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -53,6 +59,7 @@
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
