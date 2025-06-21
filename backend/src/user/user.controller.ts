@@ -4,18 +4,19 @@ import { Request, Response } from 'express';
 import { JwtGuard } from '../auth/guard';
 import { GetUser } from '../auth/decorator';
 import { User } from 'generated/prisma';
+import { UserService } from './user.service';
 
 @UseGuards(JwtGuard)
-@Controller('user')
+@Controller('users')
 export class UserController {
+  constructor(private userService: UserService) {}
   @Get('me')
   getMe(@GetUser() user: User) {
     return { message: 'User details', user };
   }
 
-  @Patch()
+  @Patch('me')
   editUser(@GetUser() user: User, @Req() req: Request) {
-    const updatedUser = { ...user, ...req.body }; // Simulating an update
-    return { message: 'User updated', user: updatedUser };
+    return this.userService.editUser(user.id, req.body);
   }
 }

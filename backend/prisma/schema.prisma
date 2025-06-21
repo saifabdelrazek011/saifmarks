@@ -42,5 +42,8 @@ model Bookmark {
   userId String
   user   User @relation(fields: [userId], references: [id])
 
+  userBookmarkId Int 
+
+  @@unique([userId, userBookmarkId])
   @@map("bookmarks")
 }

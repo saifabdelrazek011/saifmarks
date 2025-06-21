@@ -5,6 +5,7 @@ import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { AuthDto } from '../src/auth/dto';
 import { BookmarkDto } from '../src/bookmark/dto';
+import { editUserDto } from '../src/user/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -123,23 +124,64 @@ describe('App e2e', () => {
   });
 
   describe('User', () => {
+    const dto: editUserDto = {
+      firstName: 'TestUpdated',
+      lastName: 'UserlastUpdated',
+      email: 'test@example.com',
+    };
     describe('Get me', () => {
       it('should throw if not authenticated', () => {
-        return pactum.spec().get('/user/me').expectStatus(401);
+        return pactum.spec().get('/users/me').expectStatus(401);
       });
       it('should throw if invalid token', () => {
         return pactum
           .spec()
-          .get('/user/me')
+          .get('/users/me')
           .withHeaders({ Authorization: `Bearer invalidToken` })
           .expectStatus(401);
       });
       it('should get current user', () => {
         return pactum
           .spec()
-          .get('/user/me')
+          .get('/users/me')
           .withHeaders({ Authorization: `Bearer $S{userAT}` })
           .expectStatus(200);
+      });
+    });
+
+    describe('Edit User', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .patch('/users/me')
+          .withBody({ email: '' })
+          .expectStatus(401);
+      });
+      it('should throw if invalid token', () => {
+        return pactum
+          .spec()
+          .patch('/users/me')
+          .withHeaders({ Authorization: `Bearer invalidToken` })
+          .withBody({ email: '', password: 'newPassword' })
+          .expectStatus(401);
+      });
+      it('should update user email', () => {
+        return pactum
+          .spec()
+          .patch('/users/me')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withBody({ email: dto.email })
+          .expectStatus(200)
+          .expectBodyContains(dto.email);
+      });
+      it('should update user first name', () => {
+        return pactum
+          .spec()
+          .patch('/users/me')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withBody({ firstName: dto.firstName })
+          .expectStatus(200)
+          .expectBodyContains(dto.firstName);
       });
     });
   });
@@ -161,3 +203,5 @@ describe('App e2e', () => {
     describe('Delete Bookmark', () => {});
   });
 });
+
+jest.setTimeout(50000);
