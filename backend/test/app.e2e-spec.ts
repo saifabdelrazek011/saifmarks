@@ -4,7 +4,7 @@ import * as pactum from 'pactum';
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { AuthDto } from '../src/auth/dto';
-import { BookmarkDto } from '../src/bookmark/dto';
+import { CreateBookmarkDto, UpdateBookmarkDto } from '../src/bookmark/dto';
 import { editUserDto } from '../src/user/dto';
 
 describe('App e2e', () => {
@@ -150,7 +150,7 @@ describe('App e2e', () => {
     });
 
     describe('Edit User', () => {
-      it('should throw if not authenticated', () => {
+      it('should throw if not authesnticated', () => {
         return pactum
           .spec()
           .patch('/users/me')
@@ -187,18 +187,169 @@ describe('App e2e', () => {
   });
 
   describe('Bookmarks', () => {
-    const bookmarkDto: BookmarkDto = {
+    const bookmarkDto: CreateBookmarkDto = {
       title: 'Example Bookmark',
       url: 'https://example.com',
+      description: 'This is the main bookmark',
     };
 
-    describe('Create Bookmark', () => {});
+    const updatedBookmarkDto: UpdateBookmarkDto = {
+      title: 'Updated Bookmark',
+      url: 'https://updated.example.com',
+      description: 'This is the updated bookmark',
+    };
 
-    describe('Get Bookmarks', () => {});
+    describe('Create Bookmark', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withBody(bookmarkDto)
+          .expectStatus(401);
+      });
 
-    describe('Get bookmark by ID', () => {});
+      it('should throw if invalid token', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({ Authorization: `Bearer invalidToken` })
+          .withBody(bookmarkDto)
+          .expectStatus(401);
+      });
 
-    describe('Update Bookmark', () => {});
+      it('should create a bookmark', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withBody(bookmarkDto)
+          .expectStatus(201)
+          .stores('bookmarkId', 'bookmark.id');
+      });
+    });
+
+    describe('Get Bookmarks', () => {
+      it('should throw if not authenticated', () => {
+        return pactum.spec().get('/bookmarks').expectStatus(401);
+      });
+
+      it('should throw if invalid token', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({ Authorization: `Bearer invalidToken` })
+          .expectStatus(401);
+      });
+
+      it('should get all bookmarks', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .expectStatus(200);
+      });
+    });
+
+    describe('Get bookmark by ID', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{bookmarkId}')
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
+      it('should throw if invalid token', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{bookmarkId}')
+          .withHeaders({ Authorization: `Bearer invalidToken` })
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
+      it('should get bookmark by ID', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{bookmarkId}')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .expectStatus(200)
+          .expectJsonLike({
+            bookmark: {
+              id: '$S{bookmarkId}',
+              title: bookmarkDto.title,
+              url: bookmarkDto.url,
+            },
+          })
+          .stores('userBookmarkId', 'bookmark.userBookmarkId');
+      });
+    });
+
+    describe('Update Bookmark', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{bookmarkId}')
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .withBody(updatedBookmarkDto)
+          .expectStatus(401);
+      });
+
+      it('should throw if invalid token', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{bookmarkId}')
+          .withHeaders({ Authorization: `Bearer invalidToken` })
+          .withBody(updatedBookmarkDto)
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .expectStatus(401);
+      });
+
+      it('should throw if no field updated', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{bookmarkId}')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .withBody(updatedBookmarkDto)
+          .expectStatus(403);
+      });
+
+      it('should update the url of the bookmark', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{bookmarkId}')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .withBody(updatedBookmarkDto.url)
+          .expectStatus(200)
+          .expectJsonLike({
+            bookmark: {
+              id: '$S{bookmarkId}',
+              title: updatedBookmarkDto.title,
+              url: bookmarkDto.url,
+            },
+          });
+      });
+
+      it('should update the title of bookmark', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{bookmarkId}')
+          .withHeaders({ Authorization: `Bearer $S{userAT}` })
+          .withPathParams('bookmarkId', '$S{bookmarkId}')
+          .withBody(updatedBookmarkDto.title)
+          .expectStatus(200)
+          .expectJsonLike({
+            bookmark: {
+              id: '$S{bookmarkId}',
+              title: updatedBookmarkDto.title,
+              url: updatedBookmarkDto.url,
+            },
+          });
+      });
+    });
 
     describe('Delete Bookmark', () => {});
   });

@@ -25,6 +25,8 @@ model User {
   firstName String?
   lastName  String?
 
+  isAdmin Boolean @default(false)
+
   bookmarks Bookmark[]
 
   @@map("users")
@@ -42,8 +44,8 @@ model Bookmark {
   userId String
   user   User @relation(fields: [userId], references: [id])
 
-  userBookmarkId Int 
-
+  userBookmarkId Int @default(autoincrement())
+  
   @@unique([userId, userBookmarkId])
   @@map("bookmarks")
 }

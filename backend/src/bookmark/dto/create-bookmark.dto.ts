@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, Length } from 'class-validator';
 
-export class BookmarkDto {
+export class CreateBookmarkDto {
   @IsNotEmpty()
   @IsString()
   @Length(1, 100)
