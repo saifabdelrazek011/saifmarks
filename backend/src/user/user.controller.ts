@@ -3,7 +3,7 @@ import { Get, Patch } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtGuard } from '../auth/guard';
 import { GetUser } from '../auth/decorator';
-import { User } from 'generated/prisma';
+import { User } from '@prisma/client';
 import { UserService } from './user.service';
 
 @UseGuards(JwtGuard)

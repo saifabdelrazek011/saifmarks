@@ -4,13 +4,15 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './dto/auth.dto'; // Adjust the import path as necessary
-import * as argon from 'argon2'; // Ensure you have argon2 installed
-import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library'; // Ensure you have @prisma/client installed
-import { JwtService } from '@nestjs/jwt'; // Ensure you have @nestjs/jwt installed
-import { ConfigService } from '@nestjs/config'; // Ensure you have @nestjs/config installed
-import { JWTPayloadType } from '../types'; // Adjust the import path as necessary
+import { SignUpDto, SignInDto } from './dto/auth.dto';
+import * as argon from 'argon2';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JWTPayloadType } from '../types';
 import { emailRegex, passwordRegex } from '../regex';
+import { JWT_SECRET } from '../../config';
+import { SignInReturnType } from '../types';
 
 @Injectable({})
 export class AuthService {
@@ -20,7 +22,7 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  async signup(dto: AuthDto) {
+  async signup(dto: SignUpDto) {
     try {
       // Validate the input data
       if (!dto || !dto.email || !dto.password) {
@@ -64,31 +66,44 @@ export class AuthService {
           email: dto.email,
           hashedPassword: hash,
         },
-        select: {
-          id: true,
-          email: true,
-          createdAt: true,
-        },
       });
 
-      return user;
+      const { hashedPassword, ...userWithoutPassword } = user;
+
+      return {
+        success: true,
+        message: 'The User Signed up successfully',
+        user: userWithoutPassword,
+      };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Credentials taken');
+          return {
+            success: false,
+            message: 'Credentials taken',
+            user: null,
+          };
         }
       }
       if (
         error instanceof BadRequestException ||
         error instanceof ForbiddenException
       ) {
-        throw error;
+        return {
+          success: false,
+          message: error.message,
+          user: null,
+        };
       }
-      throw new Error('Signup failed');
+      return {
+        success: false,
+        message: 'Signup failed',
+        user: null,
+      };
     }
   }
 
-  async signin(dto: AuthDto) {
+  async signin(dto: SignInDto): Promise<SignInReturnType> {
     try {
       // Validate the input data
       if (!dto || !dto.email || !dto.password) {
@@ -135,7 +150,7 @@ export class AuthService {
       return {
         success: true,
         message: 'User authenticated',
-        access_token: await this.signToken(user.id, user.email),
+        token: await this.signToken(user.id, user.email),
       };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -181,7 +196,7 @@ export class AuthService {
 
       const token = await this.jwt.signAsync(data, {
         expiresIn: '7d',
-        secret: process.env.JWT_SECRET,
+        secret: JWT_SECRET,
       });
 
       return token;

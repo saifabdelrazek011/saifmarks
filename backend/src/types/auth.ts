@@ -1,15 +1,10 @@
-export type SignTokenPromise = {
+export type SignInReturnType = {
   success: boolean;
   message: string;
-  access_token: string;
+  token: string;
 };
 
-export type JWTPayloadType = {
-  sub: string;
-  email: string;
-};
-
-export type UserPromise = {
+export type SignUpReturnType = {
   success: boolean;
   message: string;
   user: {
