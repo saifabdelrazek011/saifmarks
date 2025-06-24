@@ -1,4 +1,4 @@
-import { DashboardProvider } from "./context/DashboardContext";
+import { DashboardProvider } from "./context";
 import Router from "./router/router";
 
 function App() {

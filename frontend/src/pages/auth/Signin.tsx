@@ -8,8 +8,9 @@ function Signin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSigninLoading, setIsSigninLoading] = useState(false);
+  const [signinError, setSigninError] = useState<string | null>(null);
 
-  const { userData, handleUpdateUserData } = useDashboardContext();
+  const { handleUpdateUserData, globalErorr } = useDashboardContext();
 
   const handleSignin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,19 +19,38 @@ function Signin() {
       await signin(email, password);
       await handleUpdateUserData();
     } catch (error) {
-      console.error("Signin failed:", error);
-      // Handle error (e.g., show error message)
+      setSigninError(error instanceof Error ? error.message : "Signin failed");
     } finally {
       setIsSigninLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8">
         <h2 className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-6 text-center">
           Sign in to your account
         </h2>
+        <div className="mb-4 text-center text-gray-600 dark:text-gray-400">
+          Return to Home?{" "}
+          <Link
+            to="/"
+            className="text-blue-600 dark:text-blue-300 hover:underline"
+          >
+            Go to Home
+          </Link>
+        </div>
+        {globalErorr && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {globalErorr}
+          </div>
+        )}
+        {signinError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {signinError}
+          </div>
+        )}
+
         <form className="space-y-5" onSubmit={handleSignin}>
           <div>
             <label
@@ -88,7 +108,7 @@ function Signin() {
           <button
             type="submit"
             className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg shadow hover:scale-105 transition"
-            disabled={isSigninLoading}
+            disabled={isSigninLoading || !!globalErorr}
           >
             {isSigninLoading ? "Signing in..." : "Sign In"}
           </button>

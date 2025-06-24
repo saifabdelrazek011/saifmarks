@@ -4,3 +4,9 @@ export type BookmarkType = {
   url: string;
   description?: string;
 };
+
+export type BookmarkDataType = {
+  success: boolean;
+  message: string;
+  bookmarks: BookmarkType[];
+};

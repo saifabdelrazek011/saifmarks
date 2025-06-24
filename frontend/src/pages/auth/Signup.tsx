@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { SignUpReturn, UserType } from "../../types";
+import type { UserType } from "../../types";
 import { signup } from "../../services";
 import { useDashboardContext } from "../../context";
 
@@ -20,14 +20,15 @@ function Signup() {
 
   const [isSignupLoading, setIsSignupLoading] = useState(false);
 
-  const {} = useDashboardContext();
+  const [signupError, setSignupError] = useState<string | null>(null);
+
+  const { globalErorr } = useDashboardContext();
   const navigate = useNavigate();
 
-  const handleSignup = async (
-    e: FormEvent<HTMLFormElement>
-  ): Promise<SignUpReturn> => {
+  const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSignupLoading(true);
+    setSignupError(null);
     try {
       if (!firstName || !email || !password || !confirmPassword) {
         return {
@@ -43,28 +44,26 @@ function Signup() {
           user: null,
         };
       }
-      const userData: UserType = await signup({
+      const signedUserInfo: UserType = await signup({
         firstName,
         lastName,
         email,
         password,
         confirmPassword,
       });
-      if (userData && userData.id && userData.email) {
+      if (
+        signedUserInfo &&
+        signedUserInfo.id &&
+        signedUserInfo.emails.length > 0
+      ) {
         navigate("/signin");
       }
-      return {
-        success: false,
-        message: "Signup failed",
-        user: null,
-      };
     } catch (error) {
-      console.error("Error during signup:", error);
-      return {
-        success: false,
-        message: "An error occurred during signup",
-        user: null,
-      };
+      setSignupError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred during signup"
+      );
     } finally {
       setIsSignupLoading(false);
     }
@@ -76,6 +75,25 @@ function Signup() {
         <h2 className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-6 text-center">
           Create your account
         </h2>
+        <div className="mb-4 text-center text-gray-600 dark:text-gray-400">
+          Return to Home?{" "}
+          <Link
+            to="/"
+            className="text-blue-600 dark:text-blue-300 hover:underline"
+          >
+            Go to Home
+          </Link>
+        </div>
+        {globalErorr && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {globalErorr}
+          </div>
+        )}
+        {signupError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {signupError}
+          </div>
+        )}
         <form className="space-y-5" onSubmit={handleSignup}>
           <div className="flex gap-4 mb-4">
             <div className="w-1/2">
@@ -179,7 +197,7 @@ function Signup() {
           <button
             type="submit"
             className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg shadow hover:scale-105 transition"
-            disabled={isSignupLoading}
+            disabled={isSignupLoading || !!globalErorr}
           >
             {isSignupLoading ? "Signing..." : "Sign Up"}
           </button>

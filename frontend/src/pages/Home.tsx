@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useDashboardContext } from "../context";
 
 const Home = () => {
-  const { userData } = useDashboardContext();
+  const { isAuthenticated } = useDashboardContext();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col">
@@ -13,13 +13,13 @@ const Home = () => {
         </h1>
         <div className="space-x-4">
           <Link
-            to="/signin"
+            to={isAuthenticated ? "/dashboard" : "/signin"}
             className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
           >
             Login
           </Link>
           <Link
-            to="/signup"
+            to={isAuthenticated ? "/dashboard" : "/signup"}
             className="px-5 py-2 rounded-lg bg-blue-400 text-white font-semibold hover:bg-blue-500 transition"
           >
             Signup
@@ -37,7 +37,7 @@ const Home = () => {
           securely from anywhere.
         </p>
         <Link
-          to={userData && userData.id ? "/dashboard" : "/signup"}
+          to={isAuthenticated ? "/dashboard" : "/signup"}
           className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg shadow-lg hover:scale-105 transition"
         >
           Get Started

@@ -1,9 +1,10 @@
-import type { UserType } from "./UserTypes";
+import type { UserDataType, UserType } from "./UserTypes";
 import type { BookmarkType } from "./BookmarkTypes";
 
 export type DashboardContextType = {
   // User related properties
-  userData: UserType;
+  user: UserType;
+  userData: UserDataType;
   isAuthenticated: boolean;
   isUserLoading?: boolean;
   handleUpdateUserData: () => Promise<void>;
@@ -11,4 +12,9 @@ export type DashboardContextType = {
   // Bookmarks related properties
   bookmarks: BookmarkType[];
   isBookmarksLoading?: boolean;
+
+  // Themes related properties
+  toggleTheme: () => void;
+
+  globalErorr?: string;
 };

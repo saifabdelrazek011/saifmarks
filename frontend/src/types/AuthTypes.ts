@@ -22,5 +22,5 @@ export type SignUpReturn = {
 export type SignInReturn = {
   success: boolean;
   message: string;
-  token: string;
+  user: UserType | null;
 };

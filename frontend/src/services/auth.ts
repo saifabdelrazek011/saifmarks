@@ -4,14 +4,17 @@ import {
   type SignInReturn,
   type SignUpType,
 } from "../types";
-import api from "./axios";
+import api from "./api";
 
-export const signup = async (userData: SignUpType): Promise<UserType> => {
+export const signup = async (signedUserData: SignUpType): Promise<UserType> => {
   try {
-    const response = await api.post<SignUpReturn>(`/auth/signup`, userData, {
-      withCredentials: true,
-    });
-    console.log("Signup response:", response.data);
+    const response = await api.post<SignUpReturn>(
+      `/auth/signup`,
+      signedUserData,
+      {
+        withCredentials: true,
+      }
+    );
     if (!response.data.success || !response.data.user) {
       throw new Error(response.data.message || "Signup failed");
     }
@@ -19,10 +22,8 @@ export const signup = async (userData: SignUpType): Promise<UserType> => {
   } catch (error: Error | any) {
     if (error.response) {
       // Handle specific error response from the server
-      console.error("Signup error response:", error.response.data);
       throw new Error(error.response.data.message || "Signup failed");
     } else {
-      console.error("Error during signup:", error);
       throw new Error("Signup failed");
     }
   }
@@ -31,27 +32,36 @@ export const signup = async (userData: SignUpType): Promise<UserType> => {
 export const signin = async (
   email: string,
   password: string
-): Promise<string> => {
+): Promise<UserType> => {
   try {
     const response = await api.post<SignInReturn>(
       `/auth/signin`,
       { email, password },
       { withCredentials: true }
     );
-    console.log("Signin response:", response.data);
 
-    if (!response.data.success || !response.data.token) {
+    if (!response.data.success || !response.data.user) {
       throw new Error(response.data.message || "Signin failed");
     }
-    return response.data.token;
+    return response.data.user;
   } catch (error: Error | any) {
     if (error.response) {
       // Handle specific error response from the server
-      console.error("Signin error response:", error.response.data);
       throw new Error(error.response.data.message || "Signin failed");
     } else {
-      console.error("Error during signin:", error);
       throw new Error("Signin failed");
+    }
+  }
+};
+
+export const signout = async (): Promise<void> => {
+  try {
+    await api.post("/auth/signout", {}, { withCredentials: true });
+  } catch (error: Error | any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || "Signout failed");
+    } else {
+      throw new Error("Signout failed");
     }
   }
 };
