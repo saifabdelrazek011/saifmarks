@@ -16,7 +16,7 @@ import { getUserBookmarks, getUserData } from "../services";
 const DashboardContext = createContext<DashboardContextType | undefined>(
   undefined
 );
-const globalErorr = import.meta.env.VITE_GLOBAL_ERROR;
+const globalError = import.meta.env.VITE_GLOBAL_ERROR;
 
 export const useDashboardContext = (): DashboardContextType => {
   const context = useContext(DashboardContext);
@@ -116,7 +116,9 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
   // Get the current user data
   useEffect(() => {
-    if (!userData.success || !userData.user.id) handleUpdateUserData();
+    if ((!userData.success || !userData.user.id) && !globalError) {
+      handleUpdateUserData();
+    }
   }, []);
 
   // Fetch bookmarks when user data is updated
@@ -141,7 +143,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     // Themes related properties
     toggleTheme,
 
-    globalErorr,
+    globalError,
   };
 
   return (

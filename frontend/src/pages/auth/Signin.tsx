@@ -10,7 +10,7 @@ function Signin() {
   const [isSigninLoading, setIsSigninLoading] = useState(false);
   const [signinError, setSigninError] = useState<string | null>(null);
 
-  const { handleUpdateUserData, globalErorr } = useDashboardContext();
+  const { handleUpdateUserData, globalError } = useDashboardContext();
 
   const handleSignin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,9 +40,9 @@ function Signin() {
             Go to Home
           </Link>
         </div>
-        {globalErorr && (
+        {globalError && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-            {globalErorr}
+            {globalError}
           </div>
         )}
         {signinError && (
@@ -108,7 +108,7 @@ function Signin() {
           <button
             type="submit"
             className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg shadow hover:scale-105 transition"
-            disabled={isSigninLoading || !!globalErorr}
+            disabled={isSigninLoading || !!globalError}
           >
             {isSigninLoading ? "Signing in..." : "Sign In"}
           </button>

@@ -16,5 +16,5 @@ export type DashboardContextType = {
   // Themes related properties
   toggleTheme: () => void;
 
-  globalErorr?: string;
+  globalError?: string;
 };

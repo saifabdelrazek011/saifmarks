@@ -22,7 +22,7 @@ function Signup() {
 
   const [signupError, setSignupError] = useState<string | null>(null);
 
-  const { globalErorr } = useDashboardContext();
+  const { globalError } = useDashboardContext();
   const navigate = useNavigate();
 
   const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
@@ -84,9 +84,9 @@ function Signup() {
             Go to Home
           </Link>
         </div>
-        {globalErorr && (
+        {globalError && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-            {globalErorr}
+            {globalError}
           </div>
         )}
         {signupError && (
@@ -197,7 +197,7 @@ function Signup() {
           <button
             type="submit"
             className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold text-lg shadow hover:scale-105 transition"
-            disabled={isSignupLoading || !!globalErorr}
+            disabled={isSignupLoading || !!globalError}
           >
             {isSignupLoading ? "Signing..." : "Sign Up"}
           </button>
