@@ -18,7 +18,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email          String @unique
+  emails          Email[] 
   hashedPassword String
 
   firstName String?
@@ -29,6 +29,21 @@ model User {
   bookmarks Bookmark[]
 
   @@map("users")
+}
+
+model Email {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email String @unique
+  isPrimary Boolean @default(false)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("emails")
+  @@unique([userId, isPrimary])
 }
 
 model Bookmark {
@@ -44,7 +59,21 @@ model Bookmark {
   user   User @relation(fields: [userId], references: [id])
 
   userBookmarkId Int @default(autoincrement())
+
+  tags Tag[] @relation("BookmarkTags")
   
   @@unique([userId, userBookmarkId])
   @@map("bookmarks")
+}
+
+model Tag {
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String @unique
+
+  bookmarks Bookmark[] @relation("BookmarkTags")
+
+  @@map("tags")
 }

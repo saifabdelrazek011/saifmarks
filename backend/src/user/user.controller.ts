@@ -12,11 +12,11 @@ export class UserController {
   constructor(private userService: UserService) {}
   @Get('me')
   getMe(@GetUser() user: User) {
-    return { message: 'User details', user };
+    return this.userService.getMyUserInfo(user.id);
   }
 
   @Patch('me')
-  editUser(@GetUser() user: User, @Req() req: Request) {
-    return this.userService.editUser(user.id, req.body);
+  editUser(@GetUser('id') userId: string, @Req() req: Request) {
+    return this.userService.editUser(userId, req.body);
   }
 }

@@ -1,11 +1,6 @@
 import { config } from 'dotenv';
 
-config({
-  path:
-    process.env.NODE_ENV === 'production'
-      ? '.env.production'
-      : '.env.development',
-});
+config();
 
 export const {
   PORT,
@@ -15,4 +10,5 @@ export const {
   REDIS_TTL,
   LOG_LEVEL,
   CORS_ORIGIN,
+  NODE_ENV,
 } = process.env;

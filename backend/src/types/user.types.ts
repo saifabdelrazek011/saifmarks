@@ -1,9 +1,11 @@
-export type UserPromise = {
+import { Email } from '@prisma/client';
+
+export type GetUserPromise = {
   success: boolean;
   message: string;
   user: {
     id: string;
-    email: string;
+    emails: Email[];
     firstName?: string;
     lastName?: string;
     createdAt: Date;

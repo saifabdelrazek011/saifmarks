@@ -11,8 +11,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JWTPayloadType } from '../types';
 import { emailRegex, passwordRegex } from '../regex';
-import { JWT_SECRET } from '../../config';
+import { JWT_SECRET, NODE_ENV } from '../../config';
 import { SignInReturnType } from '../types';
+import { Response } from 'express';
 
 @Injectable({})
 export class AuthService {
@@ -51,9 +52,11 @@ export class AuthService {
       }
 
       // Check if the user already exists
-      const existingUser = await this.prisma.user.findUnique({
+      const existingUser = await this.prisma.user.findFirst({
         where: {
-          email: dto.email,
+          emails: {
+            some: { email: dto.email },
+          },
         },
       });
 
@@ -63,8 +66,13 @@ export class AuthService {
 
       const user = await this.prisma.user.create({
         data: {
-          email: dto.email,
           hashedPassword: hash,
+          emails: {
+            create: [{ email: dto.email }],
+          },
+        },
+        include: {
+          emails: true,
         },
       });
 
@@ -103,7 +111,7 @@ export class AuthService {
     }
   }
 
-  async signin(dto: SignInDto): Promise<SignInReturnType> {
+  async signin(dto: SignInDto, res: Response): Promise<SignInReturnType> {
     try {
       // Validate the input data
       if (!dto || !dto.email || !dto.password) {
@@ -120,19 +128,19 @@ export class AuthService {
       }
 
       // Find the user by email
-      const user = await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findFirst({
         where: {
-          email: dto.email,
+          emails: {
+            some: { email: dto.email },
+          },
         },
-        select: {
-          id: true,
-          email: true,
-          hashedPassword: true,
+        include: {
+          emails: true,
         },
       });
-      // if user does not exist, throw an error
+      // if user does not exidst, throw an error
       if (!user) {
-        throw new ForbiddenException('Credentials incorrect');
+        throw new ForbiddenException('You are not registered');
       }
 
       // compare the password with the hashed password
@@ -146,16 +154,49 @@ export class AuthService {
         throw new ForbiddenException('Credentials incorrect');
       }
 
+      const { hashedPassword, ...userWithoutPassword } = user;
+
+      // Generate a JWT token
+      if (!JWT_SECRET) {
+        throw new BadRequestException('JWT_SECRET is not defined');
+      }
+
+      const token = await this.signToken(user.id, user.emails[0].email);
+
+      if (!token) {
+        throw new BadRequestException('Token generation failed');
+      }
+
+      // If the token is successfully generated, set the cookie
+      if (!res || typeof res.cookie !== 'function') {
+        throw new BadRequestException('Response object is invalid');
+      }
+
+      res
+        .cookie('Authorization', 'Bearer ' + token, {
+          httpOnly: true,
+          secure: NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 8 * 3600000,
+
+          path: '/',
+        })
+        .status(200);
+
       // if everything is correct, return the user without the hashed password
       return {
         success: true,
         message: 'User authenticated',
-        token: await this.signToken(user.id, user.email),
+        user: userWithoutPassword,
       };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Credentials taken');
+          return {
+            success: false,
+            message: 'Credentials taken',
+            user: null,
+          };
         }
       }
       if (
@@ -164,10 +205,15 @@ export class AuthService {
       ) {
         throw error;
       }
-      throw new Error('Signin failed');
+      return {
+        success: false,
+        message: 'Signin failed',
+        user: null,
+      };
     }
   }
 
+  // Functions
   async signToken(userId: string, email: string): Promise<string> {
     try {
       if (!userId || !email) {
@@ -202,6 +248,28 @@ export class AuthService {
       return token;
     } catch (error) {
       throw new Error(`Error signing token: ${error.message}`);
+    }
+  }
+
+  async signout(res: Response): Promise<void> {
+    try {
+      if (!res || typeof res.clearCookie !== 'function') {
+        throw new BadRequestException('Response object is invalid');
+      }
+
+      res
+        .clearCookie('Authorization', {
+          httpOnly: true,
+          secure: NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+        })
+        .status(200);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(`Signout failed: ${error.message}`);
     }
   }
 }

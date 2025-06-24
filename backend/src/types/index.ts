@@ -1,3 +1,3 @@
-export * from './user';
-export * from './auth';
-export * from './jwt';
+export * from './user.types';
+export * from './auth.types';
+export * from './jwt.types';

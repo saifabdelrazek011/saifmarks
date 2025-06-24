@@ -7,7 +7,7 @@ import { Injectable, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { emailRegex } from '../regex';
 import { editUserDto } from './dto/user.dto';
-import { UserPromise } from '../types';
+import { GetUserPromise } from '../types';
 import { JwtGuard } from '../auth/guard';
 
 @UseGuards(JwtGuard)
@@ -15,7 +15,7 @@ import { JwtGuard } from '../auth/guard';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async editUser(userId: string, dto: editUserDto): Promise<UserPromise> {
+  async editUser(userId: string, dto: editUserDto): Promise<GetUserPromise> {
     try {
       // Validate the input dto
       if (!userId) {
@@ -38,7 +38,10 @@ export class UserService {
       if (dto.email && emailRegex.test(dto.email)) {
         // Check if the email is already taken by another user
         const emailExists = await this.prisma.user.findFirst({
-          where: { email: dto.email, id: { not: userId } },
+          where: {
+            emails: { some: { email: dto.email } },
+            id: { not: userId },
+          },
         });
 
         if (emailExists) {
@@ -53,6 +56,7 @@ export class UserService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: { ...dto },
+        include: { emails: true },
       });
 
       if (!updatedUser) {
@@ -81,6 +85,42 @@ export class UserService {
       };
     } catch (error) {
       throw new Error(`Error updating user: ${error.message}`);
+    }
+  }
+
+  async getMyUserInfo(userId: string): Promise<GetUserPromise> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { emails: true },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const { hashedPassword, ...userWithoutPassword } = user;
+
+      // Convert nulls to undefined for firstName and lastName
+      const userWithUndefined = {
+        ...userWithoutPassword,
+        firstName:
+          userWithoutPassword.firstName === null
+            ? undefined
+            : userWithoutPassword.firstName,
+        lastName:
+          userWithoutPassword.lastName === null
+            ? undefined
+            : userWithoutPassword.lastName,
+      };
+
+      return {
+        success: true,
+        message: 'User info fetched successfully',
+        user: userWithUndefined,
+      };
+    } catch (error) {
+      throw new Error(`Error fetching user info: ${error.message}`);
     }
   }
 }
