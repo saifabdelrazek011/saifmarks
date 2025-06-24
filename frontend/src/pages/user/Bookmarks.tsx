@@ -4,16 +4,14 @@ import BookmarksContent from "./BookmarksContent";
 
 const BookmarksPage = () => {
   const { bookmarks } = useDashboardContext();
-
-  // Optionally, add handlers for edit/delete here
   const handleEdit = (id: string) => {
-    // Implement edit logic or open edit modal
+    // Implement edit logic
+    console.log(`Edit bookmark with id: ${id}`);
   };
-
   const handleDelete = (id: string) => {
     // Implement delete logic
+    console.log(`Delete bookmark with id: ${id}`);
   };
-
   return (
     <DashboardLayout>
       <BookmarksContent

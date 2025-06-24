@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import Home from "../pages/Home";
 import Notfound from "../pages/404";
 import Signin from "../pages/auth/Signin";
@@ -16,7 +16,7 @@ import Developer from "../pages/user/Developer";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthRoute from "./routes/AuthRoute";
 import RouteTracker from "./RouteTracker";
-import Bookmarks from "../pages/user/Bookmarks";
+import BookmarksPage from "../pages/user/Bookmarks";
 
 function Router() {
   return (
@@ -39,7 +39,7 @@ function Router() {
             path="/bookmarks"
             element={
               <ProtectedRoute>
-                <Bookmarks />
+                <BookmarksPage />
               </ProtectedRoute>
             }
           />
