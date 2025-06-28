@@ -1,14 +1,16 @@
 import { Email } from '@prisma/client';
 
-export type GetUserPromise = {
+export type UserPromise = {
   success: boolean;
   message: string;
-  user: {
-    id: string;
-    emails: Email[];
-    firstName?: string;
-    lastName?: string;
-    createdAt: Date;
-    updatedAt: Date;
-  };
+  user: UserType;
 };
+
+export type UserType = {
+  id: string;
+  emails: Email[];
+  firstName?: string | null;
+  lastName?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+} | null;

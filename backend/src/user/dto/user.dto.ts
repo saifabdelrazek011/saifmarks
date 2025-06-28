@@ -6,9 +6,6 @@ export class editUserDto {
 
   @IsString()
   lastName?: string;
-
-  @IsEmail()
-  email?: string;
 }
 
 export class editPasswordDto {

@@ -14,6 +14,7 @@ import { emailRegex, passwordRegex } from '../regex';
 import { JWT_SECRET, NODE_ENV } from '../../config';
 import { SignInReturnType } from '../types';
 import { Response } from 'express';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable({})
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private emailService: EmailService, // Assuming EmailService is defined and imported correctly
   ) {}
 
   async signup(dto: SignUpDto) {
@@ -271,5 +273,78 @@ export class AuthService {
       }
       throw new Error(`Signout failed: ${error.message}`);
     }
+  }
+
+  async sendVerificationEmail(email: string): Promise<void> {
+    const user = await this.prisma.user.findFirst({
+      where: { emails: { some: { email } } },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const token = await this.signToken(user.id, email);
+
+    if (!token) {
+      throw new BadRequestException('Token generation failed');
+    }
+
+    // Send the verification email
+    await this.emailService.sendVerificationEmail({
+      to: email,
+      subject: 'Email Verification',
+      template: 'verify-email',
+      token,
+    });
+  }
+
+  async verifyEmail(token: string) {
+    const verificationEmail = await this.prisma.email.findFirst({
+      where: {
+        verificationToken: token,
+        isVerified: false,
+      },
+    });
+
+    if (!verificationEmail) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    // Check if the verification token has expired
+    if (
+      verificationEmail.verificationExpires &&
+      new Date(verificationEmail.verificationExpires) < new Date()
+    ) {
+      throw new BadRequestException('Verification token has expired');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: verificationEmail.userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Mark user as verified and clear the token
+    const updatedEmail = await this.prisma.email.update({
+      where: { email: verificationEmail.email },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+        verificationExpires: null,
+      },
+    });
+
+    if (!updatedEmail) {
+      throw new BadRequestException('Email verification failed');
+    }
+
+    return {
+      success: true,
+      message: 'Email verified successfully',
+      email: updatedEmail,
+    };
   }
 }

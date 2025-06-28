@@ -28,6 +28,9 @@ model User {
 
   bookmarks Bookmark[]
 
+  changePasswordToken String? @unique
+  changePasswordExpires DateTime?
+
   @@map("users")
 }
 
@@ -38,9 +41,13 @@ model Email {
 
   email String @unique
   isPrimary Boolean @default(false)
+  isVerified Boolean @default(false)
 
   userId String
   user   User @relation(fields: [userId], references: [id])
+
+  verificationToken String? @unique
+  verificationExpires DateTime?
 
   @@map("emails")
   @@unique([userId, isPrimary])

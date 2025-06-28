@@ -6,6 +6,8 @@ import {
   HttpStatus,
   Get,
   Res,
+  Query,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto, SignInDto } from './dto';
@@ -29,5 +31,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   signout(@Res({ passthrough: true }) res: Response) {
     return this.authService.signout(res);
+  }
+
+  @Patch('verify-email')
+  @HttpCode(HttpStatus.OK)
+  verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  sendVerificationEmail(@Body('email') email: string) {
+    return this.authService.sendVerificationEmail(email);
   }
 }

@@ -7,7 +7,7 @@ import { Injectable, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { emailRegex } from '../regex';
 import { editUserDto } from './dto/user.dto';
-import { GetUserPromise } from '../types';
+import { UserPromise } from '../types';
 import { JwtGuard } from '../auth/guard';
 
 @UseGuards(JwtGuard)
@@ -15,7 +15,7 @@ import { JwtGuard } from '../auth/guard';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async editUser(userId: string, dto: editUserDto): Promise<GetUserPromise> {
+  async editUser(userId: string, dto: editUserDto): Promise<UserPromise> {
     try {
       // Validate the input dto
       if (!userId) {
@@ -23,34 +23,17 @@ export class UserService {
           'You are not authorized to perform this action',
         );
       }
-      if (!dto || (!dto.firstName && !dto.lastName && !dto.email)) {
+      if (!dto || (!dto.firstName && !dto.lastName)) {
         throw new BadRequestException('No valid fields to update');
       }
       // Check if the user exists
       const existingUser = await this.prisma.user.findUnique({
         where: { id: userId },
+        include: { emails: true },
       });
       if (!existingUser) {
         throw new NotFoundException('User not found');
       }
-
-      // validate the email if provided
-      if (dto.email && emailRegex.test(dto.email)) {
-        // Check if the email is already taken by another user
-        const emailExists = await this.prisma.user.findFirst({
-          where: {
-            emails: { some: { email: dto.email } },
-            id: { not: userId },
-          },
-        });
-
-        if (emailExists) {
-          throw new BadRequestException('Email is already taken');
-        }
-      }
-
-      dto.firstName ? dto.firstName : (dto.firstName = undefined);
-      dto.lastName ? dto.lastName : (dto.lastName = undefined);
 
       // Update the user in the database
       const updatedUser = await this.prisma.user.update({
@@ -65,30 +48,17 @@ export class UserService {
 
       const { hashedPassword, ...userWithoutPassword } = updatedUser;
 
-      // Convert nulls to undefined for firstName and lastName
-      const userWithUndefined = {
-        ...userWithoutPassword,
-        firstName:
-          userWithoutPassword.firstName === null
-            ? undefined
-            : userWithoutPassword.firstName,
-        lastName:
-          userWithoutPassword.lastName === null
-            ? undefined
-            : userWithoutPassword.lastName,
-      };
-
       return {
         success: true,
         message: 'User updated successfully',
-        user: userWithUndefined,
+        user: userWithoutPassword,
       };
     } catch (error) {
       throw new Error(`Error updating user: ${error.message}`);
     }
   }
 
-  async getMyUserInfo(userId: string): Promise<GetUserPromise> {
+  async getMyUserInfo(userId: string): Promise<UserPromise> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -101,26 +71,118 @@ export class UserService {
 
       const { hashedPassword, ...userWithoutPassword } = user;
 
-      // Convert nulls to undefined for firstName and lastName
-      const userWithUndefined = {
-        ...userWithoutPassword,
-        firstName:
-          userWithoutPassword.firstName === null
-            ? undefined
-            : userWithoutPassword.firstName,
-        lastName:
-          userWithoutPassword.lastName === null
-            ? undefined
-            : userWithoutPassword.lastName,
-      };
-
       return {
         success: true,
         message: 'User info fetched successfully',
-        user: userWithUndefined,
+        user: userWithoutPassword,
       };
     } catch (error) {
       throw new Error(`Error fetching user info: ${error.message}`);
+    }
+  }
+
+  async deleteUser(userId: string): Promise<UserPromise> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const bookmarks = await this.prisma.bookmark.deleteMany({
+        where: { userId },
+      });
+
+      await this.prisma.user.delete({
+        where: { id: userId },
+      });
+
+      return {
+        success: true,
+        message: 'User deleted successfully',
+        user: null,
+      };
+    } catch (error) {
+      throw new Error(`Error deleting user: ${error.message}`);
+    }
+  }
+
+  async addEmailToUser(userId: string, email: string): Promise<UserPromise> {
+    try {
+      // Validate the input
+      if (!userId) {
+        throw new UnauthorizedException(
+          'You are not authorized to perform this action',
+        );
+      }
+
+      if (!email || !emailRegex.test(email)) {
+        throw new BadRequestException('Invalid email format');
+      }
+
+      // Check if the user exists
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { emails: true },
+      });
+
+      const primaryEmail = existingUser?.emails.find(
+        (email) => email.isPrimary,
+      );
+
+      if (primaryEmail && primaryEmail.isVerified) {
+        throw new BadRequestException(
+          'This email is already the primary email',
+        );
+      }
+
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if the email already exists for the user
+      const emailExistsForTheSameUser = await this.prisma.email.findFirst({
+        where: { email, userId },
+      });
+
+      if (emailExistsForTheSameUser) {
+        throw new BadRequestException('Email already exists for this user');
+      }
+
+      const emailExistsForOtherUser = await this.prisma.email.findFirst({
+        where: { email, userId: { not: userId } },
+      });
+
+      if (emailExistsForOtherUser) {
+        throw new BadRequestException('Email already exists for another user');
+      }
+
+      // Add the email to the user
+      const newEmail = await this.prisma.email.create({
+        data: { email, userId },
+      });
+      if (!newEmail) {
+        throw new Error('Failed to add email to user');
+      }
+
+      const updatedUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { emails: true },
+      });
+
+      if (!updatedUser) {
+        throw new NotFoundException('User not found after adding email');
+      }
+
+      return {
+        success: true,
+        message: 'Email added successfully',
+        user: updatedUser,
+      };
+    } catch (error) {
+      throw new Error(`Error adding email to user: ${error.message}`);
     }
   }
 }
