@@ -1,5 +1,10 @@
+import DashboardLayout from "../../layouts/DashboardLayout";
 function Settings() {
-  return <div>Settings</div>;
+  return (
+    <DashboardLayout>
+      <div>Settings</div>
+    </DashboardLayout>
+  );
 }
 
 export default Settings;

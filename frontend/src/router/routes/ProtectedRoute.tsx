@@ -8,7 +8,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isUserLoading) {
     return <Loader />;
   }
-
   if (!isAuthenticated) {
     return <Navigate to="/signin" replace />;
   }

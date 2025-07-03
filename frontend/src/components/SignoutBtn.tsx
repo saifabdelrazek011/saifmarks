@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signout } from "../services/auth";
+import { useDashboardContext } from "../context";
 
 const SignoutBtn = ({ onAfterSignout }: { onAfterSignout?: () => void }) => {
   const [signoutLoading, setSignoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { handleUpdateUserData } = useDashboardContext();
   const navigate = useNavigate();
 
   const handleSignout = async () => {
@@ -13,6 +15,7 @@ const SignoutBtn = ({ onAfterSignout }: { onAfterSignout?: () => void }) => {
     try {
       await signout();
       if (onAfterSignout) onAfterSignout();
+      await handleUpdateUserData();
       navigate("/signin");
     } catch (err) {
       setError("Signout failed. Please try again.");

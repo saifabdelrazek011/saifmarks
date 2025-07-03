@@ -182,6 +182,7 @@ export class BookmarkService {
           url: dto.url,
         },
       });
+
       if (existingBookmark) {
         throw new ForbiddenException('Bookmark with this URL already exists');
       }
@@ -195,6 +196,7 @@ export class BookmarkService {
         ? lastBookmark.userBookmarkId + 1
         : 1;
 
+      // Create the bookmark
       const bookmark = await this.prisma.bookmark.create({
         data: {
           ...dto,
@@ -204,7 +206,7 @@ export class BookmarkService {
       });
 
       if (!bookmark) {
-        throw new Error('Failed to create bookmark');
+        throw new Error('Failed to create bookmark from here');
       }
 
       return {
@@ -290,10 +292,12 @@ export class BookmarkService {
         );
       }
 
-      // Update the bookmark for the authenticated user
+      // Update the bookmark
       const bookmark = await this.prisma.bookmark.update({
         where: { id: bookmarkId, userId },
-        data: dto,
+        data: {
+          ...dto,
+        },
       });
 
       if (!bookmark) {
@@ -335,7 +339,7 @@ export class BookmarkService {
       await this.prisma.bookmark.delete({
         where: { id: bookmarkId },
       });
-      return;
+      return { success: true, message: 'Bookmark deleted successfully' };
     } catch (error) {
       if (
         error instanceof BadRequestException ||
