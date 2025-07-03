@@ -1,31 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useDashboardContext } from "../../context/DashboardContext";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
 
 const Profile = () => {
   const {
     userData,
     handleChangePassword,
-    handleSendVerificationCode,
-    handleVerifyUserEmail,
+    // handleSendVerificationCode,
+    // handleVerifyUserEmail,
     handleEditUserData,
   } = useDashboardContext();
 
-  const [user, setUser] = useState(userData?.user || null);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.emails || [],
+    firstName: userData?.user?.firstName || "",
+    lastName: userData?.user?.lastName || "",
+    email: userData?.user?.emails || [],
   });
 
   const [loading, setLoading] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState("");
   const [profileError, setProfileError] = useState("");
-  const [verifySuccess, setVerifySuccess] = useState("");
+  // const [verifySuccess, setVerifySuccess] = useState("");
   const [verifyError, setVerifyError] = useState("");
-
-  const navigate = useNavigate();
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -37,18 +34,18 @@ const Profile = () => {
   const [pwSuccess, setPwSuccess] = useState("");
   const [pwError, setPwError] = useState("");
   const [showPasswords, setShowPasswords] = useState(false);
-  const [providedCode, setProvidedCode] = useState("");
-  const [email, setEmail] = useState(user?.emails[0]?.email || "");
-  const [loadingCode, setLoadingCode] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
+  // const [providedCode, setProvidedCode] = useState("");
+  // const [email, setEmail] = useState(userData?.user?.emails[0]?.email || "");
+  // const [loadingCode, setLoadingCode] = useState(false);
+  // const [verificationSent, setVerificationSent] = useState(false);
 
   useEffect(() => {
     setFormData({
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      email: user?.emails || [],
+      firstName: userData?.user?.firstName || "",
+      lastName: userData?.user?.lastName || "",
+      email: userData?.user?.emails || [],
     });
-  }, [user]);
+  }, [userData]);
 
   useEffect(() => {
     if (verifyError) {
@@ -100,32 +97,32 @@ const Profile = () => {
     }
   };
 
-  const verifyUser = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoadingCode(true);
-    setVerifySuccess("");
-    setVerifyError("");
-    try {
-      await handleVerifyUserEmail(email, providedCode);
-    } catch (error: any) {
-      setVerifyError(error.message || "Error verifying code.");
-    } finally {
-      setLoadingCode(false);
-    }
-  };
+  // const verifyUser = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setLoadingCode(true);
+  //   setVerifySuccess("");
+  //   setVerifyError("");
+  //   try {
+  //     await handleVerifyUserEmail(email, providedCode);
+  //   } catch (error: any) {
+  //     setVerifyError(error.message || "Error verifying code.");
+  //   } finally {
+  //     setLoadingCode(false);
+  //   }
+  // };
 
-  const sendVerificationEmail = async () => {
-    setLoading(true);
-    setVerifySuccess("");
-    setVerifyError("");
-    try {
-      await handleSendVerificationCode(email);
-    } catch (error: any) {
-      setVerifyError(error.message || "Error sending verification email.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const sendVerificationEmail = async () => {
+  //   setLoading(true);
+  //   setVerifySuccess("");
+  //   setVerifyError("");
+  //   try {
+  //     await handleSendVerificationCode(email);
+  //   } catch (error: any) {
+  //     setVerifyError(error.message || "Error sending verification email.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const editUserData = async (formData: {
     firstName: string;
@@ -161,7 +158,8 @@ const Profile = () => {
                 <p className="text-lg text-gray-700 dark:text-gray-200">
                   Hello,{" "}
                   <span className="font-bold text-blue-600 dark:text-blue-300">
-                    {user.firstName} {user.lastName ? user.lastName : ""}
+                    {userData.user.firstName}{" "}
+                    {userData.user.lastName ? userData.user.lastName : ""}
                   </span>
                 </p>
               </div>
@@ -235,8 +233,8 @@ const Profile = () => {
                   Joined
                 </span>
                 <span className="text-gray-900 dark:text-gray-100">
-                  {user.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString()
+                  {userData.user.createdAt
+                    ? new Date(userData.user.createdAt).toLocaleDateString()
                     : "N/A"}
                 </span>
               </div>
