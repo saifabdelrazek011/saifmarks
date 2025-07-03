@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class CreateBookmarkDto {
   @IsNotEmpty()
@@ -13,4 +13,7 @@ export class CreateBookmarkDto {
 
   @IsString()
   description?: string;
+
+  @IsArray()
+  tags?: string[];
 }

@@ -175,6 +175,8 @@ export class BookmarkService {
         dto.description = '';
       }
 
+      const { tags: dtoTags, ...dtoWithoutTags } = dto;
+
       // Check if a bookmark with the same URL already exists for the user
       const existingBookmark = await this.prisma.bookmark.findFirst({
         where: {
@@ -182,6 +184,7 @@ export class BookmarkService {
           url: dto.url,
         },
       });
+
       if (existingBookmark) {
         throw new ForbiddenException('Bookmark with this URL already exists');
       }
@@ -197,14 +200,34 @@ export class BookmarkService {
 
       const bookmark = await this.prisma.bookmark.create({
         data: {
-          ...dto,
+          ...dtoWithoutTags,
           userId,
           userBookmarkId: nextUserBookmarkId,
         },
       });
 
+      dtoTags?.forEach(async (tag) => {
+        const existingTag = await this.prisma.tag.findUnique({
+          where: {
+            name: tag,
+          },
+        });
+        if (existingTag) {
+          // If the tag exist don't create again
+          return;
+        }
+        const ourNewTag = await this.prisma.tag.create({
+          data: {
+            name: tag,
+          },
+        });
+        if (!ourNewTag) {
+          throw new Error('Failed creating tag: ' + tag);
+        }
+      });
+
       if (!bookmark) {
-        throw new Error('Failed to create bookmark');
+        throw new Error('Failed to create bookmark from here');
       }
 
       return {

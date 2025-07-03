@@ -1,38 +1,44 @@
 import api from "./api";
+import type { BookmarkType } from "../types";
 
-export const getUserBookmarks = async () => {
+export const getUserBookmarks = async (): Promise<BookmarkType[]> => {
   try {
     const response = await api.get(`/bookmarks`, {
       withCredentials: true,
     });
-    return response.data;
+    if (!response.data.bookmarks) {
+      throw new Error("Error while getting the user bookmarks from data");
+    }
+
+    return response.data.bookmarks;
   } catch (error) {
     throw new Error("Failed to fetch bookmarks " + error);
   }
 };
 
-export const createBookmark = async (bookmarkData: {
-  title: string;
-  url: string;
-}) => {
+export const createBookmark = async (
+  bookmarkData: Omit<BookmarkType, "id">
+) => {
   try {
     const response = await api.post(`/bookmarks`, bookmarkData, {
       withCredentials: true,
     });
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to create bookmark");
+    console.log(response.data.bookmark);
+    return response?.data?.bookmark;
+  } catch (error: any) {
+    throw new Error(error.response.data.message);
   }
 };
 
-export const updateBookmark = async (
-  bookmarkId: string,
-  bookmarkData: { title: string; url: string }
-) => {
+export const updateBookmark = async (bookmarkData: BookmarkType) => {
   try {
-    const response = await api.put(`/bookmarks/${bookmarkId}`, bookmarkData, {
-      withCredentials: true,
-    });
+    const response = await api.put(
+      `/bookmarks/${bookmarkData.id}`,
+      bookmarkData,
+      {
+        withCredentials: true,
+      }
+    );
     return response.data;
   } catch (error) {
     throw new Error("Failed to update bookmark: " + error);
@@ -45,7 +51,9 @@ export const deleteBookmark = async (bookmarkId: string) => {
       withCredentials: true,
     });
     return response.data;
-  } catch (error) {
-    throw new Error("Failed to delete bookmark");
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to delete bookmark"
+    );
   }
 };
