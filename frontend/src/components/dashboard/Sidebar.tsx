@@ -59,6 +59,17 @@ const Sidebar = ({
           >
             Settings
           </Link>
+          <Link
+            to="/profile"
+            className={`${
+              activePage === "profile"
+                ? "text-blue-700 dark:text-blue-300"
+                : "text-gray-700"
+            } sidebar-link`}
+            onClick={() => setOpen(false)}
+          >
+            Profile
+          </Link>
         </nav>
       </div>
       <div className="flex flex-col gap-4 mt-8">

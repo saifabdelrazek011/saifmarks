@@ -48,19 +48,19 @@ export class BookmarkController {
     return this.bookmarkService.createBookmark(userId, dto);
   }
 
-  @Patch(':id')
+  @Patch(':bookmarkId')
   async updateBookmark(
     @GetUser('id') userId: string,
-    @Param('id') bookmarkId: string,
+    @Param('bookmarkId') bookmarkId: string,
     @Body() dto: UpdateBookmarkDto,
   ) {
     return this.bookmarkService.updateBookmark(userId, bookmarkId, dto);
   }
 
-  @Delete(':id')
+  @Delete(':bookmarkId')
   async deleteBookmark(
     @GetUser('id') userId: string,
-    @Param('id') bookmarkId: string,
+    @Param('bookmarkId') bookmarkId: string,
   ) {
     return this.bookmarkService.deleteBookmark(userId, bookmarkId);
   }

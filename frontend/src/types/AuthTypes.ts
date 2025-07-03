@@ -24,3 +24,9 @@ export type SignInReturn = {
   message: string;
   user: UserType | null;
 };
+
+export type ChangePasswordType = {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+};

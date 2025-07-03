@@ -3,6 +3,8 @@ import {
   type UserType,
   type SignInReturn,
   type SignUpType,
+  type ChangePasswordType,
+  type UserDataType,
 } from "../types";
 import api from "./api";
 
@@ -63,5 +65,70 @@ export const signout = async (): Promise<void> => {
     } else {
       throw new Error("Signout failed");
     }
+  }
+};
+
+export const editUserData = async (formData: {
+  firstName: string;
+  lastName?: string;
+}): Promise<UserDataType> => {
+  try {
+    const response = await api.patch<UserDataType>(`/users/me`, formData, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: string }).message)
+        : "Failed to update user data"
+    );
+  }
+};
+
+export const changePassword = async (
+  passwordData: ChangePasswordType
+): Promise<void> => {
+  try {
+    await api.patch(`/auth/password`, passwordData, {
+      withCredentials: true,
+    });
+  } catch (error: any) {
+    throw new Error(
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: string }).message)
+        : "Failed to change password"
+    );
+  }
+};
+
+export const sendVerificationCode = async (email: string): Promise<void> => {
+  try {
+    await api.post(`/auth/verify-email`, { email }, { withCredentials: true });
+  } catch (error: any) {
+    throw new Error(
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: string }).message)
+        : "Failed to send verification code"
+    );
+  }
+};
+
+export const verifyUser = async (
+  email: string,
+  providedCode: string
+): Promise<void> => {
+  try {
+    await api.patch(
+      `/auth/verify-email`,
+      { email, code: providedCode },
+      { withCredentials: true }
+    );
+  } catch (error: any) {
+    throw new Error(
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: string }).message)
+        : "Failed to verify user"
+    );
   }
 };

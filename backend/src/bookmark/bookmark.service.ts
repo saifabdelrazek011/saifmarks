@@ -175,8 +175,6 @@ export class BookmarkService {
         dto.description = '';
       }
 
-      const { tags: dtoTags, ...dtoWithoutTags } = dto;
-
       // Check if a bookmark with the same URL already exists for the user
       const existingBookmark = await this.prisma.bookmark.findFirst({
         where: {
@@ -198,32 +196,13 @@ export class BookmarkService {
         ? lastBookmark.userBookmarkId + 1
         : 1;
 
+      // Create the bookmark
       const bookmark = await this.prisma.bookmark.create({
         data: {
-          ...dtoWithoutTags,
+          ...dto,
           userId,
           userBookmarkId: nextUserBookmarkId,
         },
-      });
-
-      dtoTags?.forEach(async (tag) => {
-        const existingTag = await this.prisma.tag.findUnique({
-          where: {
-            name: tag,
-          },
-        });
-        if (existingTag) {
-          // If the tag exist don't create again
-          return;
-        }
-        const ourNewTag = await this.prisma.tag.create({
-          data: {
-            name: tag,
-          },
-        });
-        if (!ourNewTag) {
-          throw new Error('Failed creating tag: ' + tag);
-        }
       });
 
       if (!bookmark) {
@@ -313,10 +292,12 @@ export class BookmarkService {
         );
       }
 
-      // Update the bookmark for the authenticated user
+      // Create the bookmark
       const bookmark = await this.prisma.bookmark.update({
         where: { id: bookmarkId, userId },
-        data: dto,
+        data: {
+          ...dto,
+        },
       });
 
       if (!bookmark) {
@@ -358,7 +339,7 @@ export class BookmarkService {
       await this.prisma.bookmark.delete({
         where: { id: bookmarkId },
       });
-      return;
+      return { success: true, message: 'Bookmark deleted successfully' };
     } catch (error) {
       if (
         error instanceof BadRequestException ||

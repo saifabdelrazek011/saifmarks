@@ -13,7 +13,4 @@ export class CreateBookmarkDto {
 
   @IsString()
   description?: string;
-
-  @IsArray()
-  tags?: string[];
 }

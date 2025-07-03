@@ -3,7 +3,6 @@ export type BookmarkType = {
   title: string;
   url: string;
   description?: string;
-  tags?: string[];
 };
 
 export type BookmarkDataType = {
@@ -20,6 +19,6 @@ export type BookmarksContentProps = {
 
 export type BookmarkProps = {
   bookmark: BookmarkType;
-  onEdit?: (bookmark: BookmarkType) => void;
-  onDelete?: (bookmark: BookmarkType) => void;
+  editFunction: (bookmark: BookmarkType) => void;
+  setOnEdit: (state: boolean) => void;
 };

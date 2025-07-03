@@ -10,7 +10,7 @@ import {
   type UserType,
   type UserDataType,
   type BookmarkType,
-  type AddBookmarksReturn,
+  type ChangePasswordType,
 } from "../types";
 import {
   getUserBookmarks,
@@ -18,6 +18,10 @@ import {
   createBookmark,
   updateBookmark,
   deleteBookmark,
+  changePassword,
+  sendVerificationCode,
+  verifyUser,
+  editUserData,
 } from "../services";
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -201,6 +205,80 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleEditUserData = async (formData: {
+    firstName: string;
+    lastName: string;
+  }): Promise<void> => {
+    try {
+      const userData = await editUserData(formData);
+      if (!userData || !userData.user) {
+        throw new Error("Failed to fetch user data");
+      }
+      setUserData(userData);
+      setUser(userData.user);
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to update user data"
+      );
+    }
+  };
+
+  const handleChangePassword = async (passwordData: ChangePasswordType) => {
+    try {
+      await changePassword(passwordData);
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to change password"
+      );
+    }
+  };
+
+  const handleSendVerificationCode = async (email: string): Promise<void> => {
+    setIsUserLoading(true);
+    try {
+      if (!userData.user.id || userData.user.emails.length === 0) {
+        throw new Error("User ID or email is missing");
+      }
+
+      await sendVerificationCode(email);
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to send verification code"
+      );
+    } finally {
+      setIsUserLoading(false);
+    }
+  };
+
+  const handleVerifyUserEmail = async (
+    email: string,
+    providedCode: string
+  ): Promise<void> => {
+    setIsUserLoading(true);
+    try {
+      if (!email || !providedCode) {
+        throw new Error("Email or verification code is missing");
+      }
+
+      // Call the verification API
+      await verifyUser(email, providedCode);
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to verify user"
+      );
+    } finally {
+      setIsUserLoading(false);
+    }
+  };
+
   // Get the current user data
   useEffect(() => {
     if ((!userData.success || !userData.user.id) && !globalError) {
@@ -222,11 +300,20 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     isAuthenticated,
     isUserLoading,
 
+    // User related functions
+    handleEditUserData,
     handleUpdateUserData,
+    handleChangePassword,
+
+    // Verify User Email
+    handleSendVerificationCode,
+    handleVerifyUserEmail,
 
     // Bookmarks related properties
     bookmarks,
     isBookmarksLoading,
+
+    // Bookmarks related functions
     handleAddBookmark,
     handleEditBookmark,
     handleDeleteBookmark,

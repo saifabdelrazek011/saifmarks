@@ -32,7 +32,7 @@ export const createBookmark = async (
 
 export const updateBookmark = async (bookmarkData: BookmarkType) => {
   try {
-    const response = await api.put(
+    const response = await api.patch(
       `/bookmarks/${bookmarkData.id}`,
       bookmarkData,
       {

@@ -1,5 +1,6 @@
 import type { UserDataType, UserType } from "./UserTypes";
 import type { BookmarkType } from "./BookmarkTypes";
+import type { ChangePasswordType } from "./AuthTypes";
 
 export type AddBookmarksReturn =
   | {
@@ -15,11 +16,24 @@ export type DashboardContextType = {
   userData: UserDataType;
   isAuthenticated: boolean;
   isUserLoading?: boolean;
+
+  // User related functions
+  handleEditUserData: (formData: {
+    firstName: string;
+    lastName: string;
+  }) => Promise<void>;
   handleUpdateUserData: () => Promise<void>;
+  handleChangePassword: (passwordData: ChangePasswordType) => Promise<void>;
+
+  // Verify User Email
+  handleSendVerificationCode: (email: string) => Promise<void>;
+  handleVerifyUserEmail: (email: string, providedCode: string) => Promise<void>;
 
   // Bookmarks related properties
   bookmarks: BookmarkType[];
   isBookmarksLoading?: boolean;
+
+  // Bookmarks related functions
   handleAddBookmark: (newBookmarkData: Omit<BookmarkType, "id">) => void;
   handleEditBookmark: (updateBookmarkData: BookmarkType) => void;
   handleDeleteBookmark: (bookmarkId: string) => void;

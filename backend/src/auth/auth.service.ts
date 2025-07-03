@@ -9,7 +9,7 @@ import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { JWTPayloadType } from '../types';
+import { JWTPayloadType, SignOutReturnType } from '../types';
 import { emailRegex, passwordRegex } from '../regex';
 import { JWT_SECRET, NODE_ENV } from '../../config';
 import { SignInReturnType } from '../types';
@@ -249,11 +249,14 @@ export class AuthService {
 
       return token;
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new Error(`Error signing token: ${error.message}`);
     }
   }
 
-  async signout(res: Response): Promise<void> {
+  async signout(res: Response): Promise<SignOutReturnType> {
     try {
       if (!res || typeof res.clearCookie !== 'function') {
         throw new BadRequestException('Response object is invalid');
@@ -267,11 +270,18 @@ export class AuthService {
           path: '/',
         })
         .status(200);
+      return {
+        success: true,
+        message: 'User signout successfully',
+      };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new Error(`Signout failed: ${error.message}`);
+      return {
+        success: false,
+        message: `Signout failed: ${error.message}`,
+      };
     }
   }
 

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsArray, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateBookmarkDto {
   @IsString()
@@ -14,4 +14,5 @@ export class UpdateBookmarkDto {
   @IsString()
   @IsOptional()
   description?: string;
+
 }
