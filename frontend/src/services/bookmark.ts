@@ -23,7 +23,6 @@ export const createBookmark = async (
     const response = await api.post(`/bookmarks`, bookmarkData, {
       withCredentials: true,
     });
-    console.log(response.data.bookmark);
     return response?.data?.bookmark;
   } catch (error: any) {
     throw new Error(error.response.data.message);

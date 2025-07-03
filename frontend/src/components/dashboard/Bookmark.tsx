@@ -1,6 +1,6 @@
 import { useDashboardContext } from "../../context";
 import type { BookmarkProps } from "../../types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Bookmark = ({ bookmark, editFunction, setOnEdit }: BookmarkProps) => {
   const { handleDeleteBookmark } = useDashboardContext();
@@ -19,12 +19,18 @@ const Bookmark = ({ bookmark, editFunction, setOnEdit }: BookmarkProps) => {
       setDeleteLoading(false);
     }
   };
+  useEffect(() => {
+    // Reset delete state when onDelete changes
+    if (!onDelete) {
+      setDeleteError("");
+    }
+    if (onDelete) {
+      setOnEdit(false);
+    }
+  }, [onDelete]);
+
   if (bookmark) {
     if (onDelete) {
-      // If onDelete is true, set edit state to false
-      setOnEdit(false);
-
-      // Render delete confirmation
       return (
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-6 flex flex-col gap-2">
           <p className="font-bold text-red-700 dark:text-red-300 text-lg mb-5">

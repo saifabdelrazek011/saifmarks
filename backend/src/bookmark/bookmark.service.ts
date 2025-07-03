@@ -292,7 +292,7 @@ export class BookmarkService {
         );
       }
 
-      // Create the bookmark
+      // Update the bookmark
       const bookmark = await this.prisma.bookmark.update({
         where: { id: bookmarkId, userId },
         data: {

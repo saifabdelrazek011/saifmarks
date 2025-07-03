@@ -9,7 +9,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Loader />;
   }
   if (!isAuthenticated) {
-    setTimeout(() => <Navigate to="/signin" replace />, 100);
+    return <Navigate to="/signin" replace />;
   }
 
   return <>{children}</>;
