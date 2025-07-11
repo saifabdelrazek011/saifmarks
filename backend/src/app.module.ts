@@ -76,7 +76,6 @@ import {
   providers: [
     {
       provide: APP_GUARD,
-
       useClass: ArcjetGuard,
     },
   ],
