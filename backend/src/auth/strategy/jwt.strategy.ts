@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -21,7 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         (req: Request) => {
           let token = req?.cookies?.Authorization;
           token = decodeURIComponent(token || '');
-          return token ? token.replace('Bearer ', '') : null;
+          return token ? token.split(' ')[1] : null;
         },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),

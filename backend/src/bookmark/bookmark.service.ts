@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   ForbiddenException,
-  Get,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -44,7 +45,7 @@ export class BookmarkService {
         message: 'Bookmarks fetched successfully',
         bookmarks,
       };
-    } catch (error) {
+    } catch (error: any) {
       if (
         error instanceof BadRequestException ||
         error instanceof UnauthorizedException ||
@@ -53,7 +54,9 @@ export class BookmarkService {
       ) {
         throw error; // re-throw known HTTP exceptions
       }
-      throw new Error(`Error fetching bookmarks: ${error.message}`);
+      throw new Error(
+        `Error fetching bookmarks: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
@@ -182,6 +185,7 @@ export class BookmarkService {
           url: dto.url,
         },
       });
+
       if (existingBookmark) {
         throw new ForbiddenException('Bookmark with this URL already exists');
       }
@@ -195,6 +199,7 @@ export class BookmarkService {
         ? lastBookmark.userBookmarkId + 1
         : 1;
 
+      // Create the bookmark
       const bookmark = await this.prisma.bookmark.create({
         data: {
           ...dto,
@@ -204,7 +209,7 @@ export class BookmarkService {
       });
 
       if (!bookmark) {
-        throw new Error('Failed to create bookmark');
+        throw new Error('Failed to create bookmark from here');
       }
 
       return {
@@ -271,13 +276,12 @@ export class BookmarkService {
       }
 
       // Set unsent fields
-      dto.description
-        ? (dto.description = dto.description)
-        : (dto.description = '');
-      dto.title
-        ? (dto.title = dto.title)
-        : (dto.title = existingBookmark.title);
-      dto.url ? (dto.url = dto.url) : (dto.url = existingBookmark.url);
+      if (!dto.description) {
+        dto.description = '';
+      }
+      if (!dto.title) {
+        dto.title = existingBookmark.title;
+      }
 
       // Check that any of the fields are updated
       if (
@@ -290,10 +294,12 @@ export class BookmarkService {
         );
       }
 
-      // Update the bookmark for the authenticated user
+      // Update the bookmark
       const bookmark = await this.prisma.bookmark.update({
         where: { id: bookmarkId, userId },
-        data: dto,
+        data: {
+          ...dto,
+        },
       });
 
       if (!bookmark) {
@@ -335,7 +341,7 @@ export class BookmarkService {
       await this.prisma.bookmark.delete({
         where: { id: bookmarkId },
       });
-      return;
+      return { success: true, message: 'Bookmark deleted successfully' };
     } catch (error) {
       if (
         error instanceof BadRequestException ||

@@ -15,4 +15,6 @@ export const {
   SEND_EMAIL_PASSWORD,
   SEND_EMAIL_SMTP_HOST,
   FRONTEND_URL,
+  ARCJET_ENV,
+  ARCJET_KEY,
 } = process.env;

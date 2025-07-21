@@ -1,5 +1,6 @@
 import { MailerOptions } from '@nestjs-modules/mailer';
 import {
+  NODE_ENV,
   SEND_EMAIL_ADDRESS,
   SEND_EMAIL_PASSWORD,
   SEND_EMAIL_SMTP_HOST,
@@ -16,13 +17,16 @@ export const mailerConfig: MailerOptions = {
     },
   },
   defaults: {
-    from: '"No Reply"' + ` <${SEND_EMAIL_ADDRESS}>`,
+    from: `"No Reply | SaifDEV" <${SEND_EMAIL_ADDRESS}>`,
   },
-  preview: true,
+  preview: NODE_ENV === 'development',
   template: {
     dir: process.cwd() + '/template/',
-    adapter: new EjsAdapter(),
+    adapter: new EjsAdapter({
+      inlineCssEnabled: true,
+    }),
     options: {
+      cache: false,
       strict: true,
     },
   },

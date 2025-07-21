@@ -15,3 +15,18 @@ export const getUserData = async (): Promise<UserDataType> => {
     throw new Error("Failed to fetch user info: " + error);
   }
 };
+
+export const deleteUser = async ({
+  password,
+}: {
+  password: string;
+}): Promise<void> => {
+  try {
+    await axios.delete(`${API_URL}/users/me`, {
+      withCredentials: true,
+      data: { password },
+    });
+  } catch (error) {
+    throw new Error("Failed to delete user: " + error);
+  }
+};

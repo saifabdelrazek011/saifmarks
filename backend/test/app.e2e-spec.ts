@@ -16,7 +16,7 @@ describe('App e2e', () => {
       imports: [AppModule],
     }).compile();
 
-    app = await moduleRef.createNestApplication();
+    app = moduleRef.createNestApplication();
 
     await app.init();
     await app.listen(9998);
@@ -83,7 +83,6 @@ describe('App e2e', () => {
     });
 
     describe('Signin', () => {
-      let access_token: string;
       it('should throw if email empty', () => {
         return pactum
           .spec()
@@ -127,7 +126,7 @@ describe('App e2e', () => {
     const dto: editUserDto = {
       firstName: 'TestUpdated',
       lastName: 'UserlastUpdated',
-      email: 'test@example.com',
+      email: 'testupdated@saifabdelrazek.com',
     };
     describe('Get me', () => {
       it('should throw if not authenticated', () => {

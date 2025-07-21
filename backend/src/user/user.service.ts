@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
+  ForbiddenException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -7,8 +9,11 @@ import { Injectable, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { emailRegex } from '../regex';
 import { editUserDto } from './dto/user.dto';
-import { UserPromise } from '../types';
+import { changePasswordPromise, UserPromise } from '../types';
 import { JwtGuard } from '../auth/guard';
+import { ChangePasswordDto } from './dto';
+import { passwordRegex } from '../regex';
+import * as argon from 'argon2';
 
 @UseGuards(JwtGuard)
 @Injectable()
@@ -54,7 +59,16 @@ export class UserService {
         user: userWithoutPassword,
       };
     } catch (error) {
-      throw new Error(`Error updating user: ${error.message}`);
+      if (
+        error instanceof Error ||
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw error;
     }
   }
 
@@ -77,23 +91,133 @@ export class UserService {
         user: userWithoutPassword,
       };
     } catch (error) {
-      throw new Error(`Error fetching user info: ${error.message}`);
+      if (
+        error instanceof Error ||
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw error;
     }
   }
 
-  async deleteUser(userId: string): Promise<UserPromise> {
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<changePasswordPromise> {
+    try {
+      if (!userId) {
+        throw new UnauthorizedException(
+          'You are not authorized to perform this action',
+        );
+      }
+      if (!dto || (!dto.currentPassword && !dto.newPassword)) {
+        throw new BadRequestException('No valid fields to update');
+      }
+      // Check if the user exists
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { emails: true },
+      });
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+
+      const passwordMatch = await argon.verify(
+        existingUser.hashedPassword,
+        dto.currentPassword,
+      );
+
+      if (!passwordMatch) {
+        throw new BadRequestException('Old password is incorrect');
+      }
+
+      if (!existingUser.hashedPassword) {
+        throw new Error('User does not have a password set');
+      }
+
+      if (dto.newPassword === dto.currentPassword) {
+        throw new BadRequestException(
+          'New password cannot be the same as current password',
+        );
+      }
+
+      // Check if the new password is strong enough
+      if (!passwordRegex.test(dto.newPassword)) {
+        throw new BadRequestException(
+          'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        );
+      }
+
+      // Hash the password
+      const hash = await argon.hash(dto.newPassword);
+      if (!hash) {
+        throw new BadRequestException('Password hashing failed');
+      }
+
+      // Update the user in the database
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: { hashedPassword: hash },
+        include: { emails: true },
+      });
+
+      if (!updatedUser) {
+        throw new Error('Failed to update user');
+      }
+      return {
+        success: true,
+        message: 'User updated successfully',
+      };
+    } catch (error: any) {
+      if (
+        error instanceof Error ||
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw error;
+    }
+  }
+
+  async deleteUser(userId: string, password: string): Promise<UserPromise> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
+        include: { emails: true },
       });
 
       if (!user) {
         throw new NotFoundException('User not found');
       }
 
+      const passwordMatch = await argon.verify(user.hashedPassword, password);
+
+      if (!passwordMatch) {
+        throw new BadRequestException('Password is incorrect');
+      }
+
       const bookmarks = await this.prisma.bookmark.deleteMany({
         where: { userId },
       });
+
+      if (!bookmarks) {
+        throw new Error('Failed to delete user bookmarks');
+      }
+
+      const emails = await this.prisma.email.deleteMany({
+        where: { userId },
+      });
+
+      if (!emails) {
+        throw new Error('Failed to delete user emails');
+      }
 
       await this.prisma.user.delete({
         where: { id: userId },
@@ -105,7 +229,10 @@ export class UserService {
         user: null,
       };
     } catch (error) {
-      throw new Error(`Error deleting user: ${error.message}`);
+      if (error instanceof Error) {
+        throw new Error(`Error deleting user: ${error.message}`);
+      }
+      throw new Error('Error deleting user: Unknown error');
     }
   }
 
@@ -182,7 +309,10 @@ export class UserService {
         user: updatedUser,
       };
     } catch (error) {
-      throw new Error(`Error adding email to user: ${error.message}`);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw error;
     }
   }
 }

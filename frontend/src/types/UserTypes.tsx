@@ -4,6 +4,8 @@ export type UserType = {
   lastName?: string;
   emails: UserEmailType[] | [];
   isAdmin: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export type UserDataType = {
@@ -15,6 +17,7 @@ export type UserDataType = {
 export type UserEmailType = {
   id: string;
   email: string;
+  isVerified: boolean;
   isPrimary: boolean;
   createdAt: Date;
   updatedAt: Date;
