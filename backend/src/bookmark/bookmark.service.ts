@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   ForbiddenException,
-  Get,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -44,7 +45,7 @@ export class BookmarkService {
         message: 'Bookmarks fetched successfully',
         bookmarks,
       };
-    } catch (error) {
+    } catch (error: any) {
       if (
         error instanceof BadRequestException ||
         error instanceof UnauthorizedException ||
@@ -53,7 +54,9 @@ export class BookmarkService {
       ) {
         throw error; // re-throw known HTTP exceptions
       }
-      throw new Error(`Error fetching bookmarks: ${error.message}`);
+      throw new Error(
+        `Error fetching bookmarks: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
@@ -273,13 +276,12 @@ export class BookmarkService {
       }
 
       // Set unsent fields
-      dto.description
-        ? (dto.description = dto.description)
-        : (dto.description = '');
-      dto.title
-        ? (dto.title = dto.title)
-        : (dto.title = existingBookmark.title);
-      dto.url ? (dto.url = dto.url) : (dto.url = existingBookmark.url);
+      if (!dto.description) {
+        dto.description = '';
+      }
+      if (!dto.title) {
+        dto.title = existingBookmark.title;
+      }
 
       // Check that any of the fields are updated
       if (

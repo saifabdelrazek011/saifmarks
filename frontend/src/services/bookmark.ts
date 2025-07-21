@@ -24,8 +24,21 @@ export const createBookmark = async (
       withCredentials: true,
     });
     return response?.data?.bookmark;
-  } catch (error: any) {
-    throw new Error(error.response.data.message);
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      error.response &&
+      typeof error.response === "object" &&
+      "data" in error.response &&
+      error.response.data &&
+      typeof error.response.data === "object" &&
+      "message" in error.response.data
+    ) {
+      throw new Error((error.response.data as { message: string }).message);
+    }
+    throw new Error("An unknown error occurred");
   }
 };
 
@@ -50,9 +63,20 @@ export const deleteBookmark = async (bookmarkId: string) => {
       withCredentials: true,
     });
     return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message || "Failed to delete bookmark"
-    );
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "response" in error &&
+      error.response &&
+      typeof error.response === "object" &&
+      "data" in error.response &&
+      error.response.data &&
+      typeof error.response.data === "object" &&
+      "message" in error.response.data
+    ) {
+      throw new Error((error.response.data as { message: string }).message);
+    }
+    throw new Error("Failed to delete bookmark");
   }
 };

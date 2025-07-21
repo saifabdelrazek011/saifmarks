@@ -1,22 +1,16 @@
-import { useDashboardContext } from "../../context/DashboardContext";
 import { Navigate } from "react-router-dom";
+import { useDashboardContext } from "../../context/DashboardContext";
 import Loader from "../../components/Loader";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function VerifyRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isUserLoading, isVerified } = useDashboardContext();
 
   if (isUserLoading) {
     return <Loader />;
   }
 
-  if (!isVerified) {
-    return (
-      <Navigate
-        to="/verify"
-        replace
-        state={{ from: window.location.pathname }}
-      />
-    );
+  if (isAuthenticated && isVerified) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!isAuthenticated) {
@@ -25,5 +19,4 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-export default ProtectedRoute;
+export default VerifyRoute;

@@ -14,3 +14,8 @@ export type UserType = {
   createdAt: Date;
   updatedAt: Date;
 } | null;
+
+export type changePasswordPromise = {
+  success: boolean;
+  message: string;
+};

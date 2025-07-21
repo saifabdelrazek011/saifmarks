@@ -15,6 +15,7 @@ export type DashboardContextType = {
   user: UserType;
   userData: UserDataType;
   isAuthenticated: boolean;
+  isVerified?: boolean; // Indicates if the primary email is verified
   isUserLoading?: boolean;
 
   // User related functions
@@ -24,10 +25,17 @@ export type DashboardContextType = {
   }) => Promise<void>;
   handleUpdateUserData: () => Promise<void>;
   handleChangePassword: (passwordData: ChangePasswordType) => Promise<void>;
+  handleDeleteUser: ({ password }: { password: string }) => Promise<void>;
 
   // Verify User Email
   handleSendVerificationCode: (email: string) => Promise<void>;
   handleVerifyUserEmail: (email: string, providedCode: string) => Promise<void>;
+  handleSendResetPassword: (email: string) => Promise<void>;
+  handleResetPassword: (
+    email: string,
+    token: string,
+    newPassword: string
+  ) => Promise<void>;
 
   // Bookmarks related properties
   bookmarks: BookmarkType[];

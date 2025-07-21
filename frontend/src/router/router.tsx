@@ -16,7 +16,8 @@ import Developer from "../pages/user/Developer";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AuthRoute from "./routes/AuthRoute";
 import RouteTracker from "./RouteTracker";
-import BookmarksPage from "../pages/user/Bookmarks";
+import Verify from "../pages/auth/Verify";
+import VerifyRoute from "./routes/VerifyRoute";
 
 function Router() {
   return (
@@ -31,15 +32,6 @@ function Router() {
             element={
               <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          {/* User Routes */}
-          <Route
-            path="/bookmarks"
-            element={
-              <ProtectedRoute>
-                <BookmarksPage />
               </ProtectedRoute>
             }
           />
@@ -77,13 +69,14 @@ function Router() {
             }
           />
           <Route
-            path="/forgot-password"
+            path="/verify"
             element={
-              <AuthRoute>
-                <ForgotPassword />
-              </AuthRoute>
+              <VerifyRoute>
+                <Verify />
+              </VerifyRoute>
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Static Pages */}
           <Route path="/about" element={<About />} />

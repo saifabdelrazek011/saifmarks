@@ -16,7 +16,6 @@ import {
   fixedWindow,
   shield,
 } from '@arcjet/nest';
-
 @Module({
   imports: [
     // Load ConfigModule FIRST
@@ -61,7 +60,7 @@ import {
 
           window: '60s', // 10 second fixed window
 
-          max: 2, // Allow a maximum of 2 requests
+          max: 20, // Allow a maximum of 20 requests
         }),
       ],
     }),

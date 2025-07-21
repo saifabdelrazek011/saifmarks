@@ -1,28 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { useDashboardContext } from "../../context/DashboardContext";
-// import { useNavigate } from "react-router-dom";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import { useDashboardContext } from "../../context";
+
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const {
     userData,
+    handleDeleteUser,
     handleChangePassword,
-    // handleSendVerificationCode,
-    // handleVerifyUserEmail,
     handleEditUserData,
   } = useDashboardContext();
 
+  // Profile edit state
   const [formData, setFormData] = useState({
-    firstName: userData?.user?.firstName || "",
-    lastName: userData?.user?.lastName || "",
-    email: userData?.user?.emails || [],
+    firstName: userData.user.firstName || "",
+    lastName: userData.user.lastName || "",
   });
-
   const [loading, setLoading] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState("");
   const [profileError, setProfileError] = useState("");
-  // const [verifySuccess, setVerifySuccess] = useState("");
-  const [verifyError, setVerifyError] = useState("");
 
   // Password change state
   const [passwordData, setPasswordData] = useState({
@@ -34,62 +32,44 @@ const Profile = () => {
   const [pwSuccess, setPwSuccess] = useState("");
   const [pwError, setPwError] = useState("");
   const [showPasswords, setShowPasswords] = useState(false);
-  // const [providedCode, setProvidedCode] = useState("");
-  // const [email, setEmail] = useState(userData?.user?.emails[0]?.email || "");
-  // const [loadingCode, setLoadingCode] = useState(false);
-  // const [verificationSent, setVerificationSent] = useState(false);
 
-  useEffect(() => {
-    setFormData({
-      firstName: userData?.user?.firstName || "",
-      lastName: userData?.user?.lastName || "",
-      email: userData?.user?.emails || [],
-    });
-  }, [userData]);
+  // Delete user popup and fields
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState("");
 
-  useEffect(() => {
-    if (verifyError) {
-      setTimeout(() => {
-        setVerifyError("");
-      }, 5000);
-    }
-  }, [verifyError]);
-
-  useEffect(() => {
-    if (profileError) {
-      setTimeout(() => {
-        setProfileError("");
-      }, 5000);
-    }
-  }, [profileError]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  // Handle profile form change
+  const handleChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Password change handlers
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  // Handle password form change
+  const handlePasswordChange = (e: any) => {
+    setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
   };
 
+  // Change password handler
   const changeUserPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPwLoading(true);
     setPwSuccess("");
     setPwError("");
-
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
       setPwError("New passwords do not match.");
+      setPwLoading(false);
       return;
     }
     try {
       await handleChangePassword(passwordData);
+      setPwSuccess("Password changed successfully!");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
     } catch (error: any) {
       setPwError(error.message || "Failed to change password.");
     } finally {
@@ -97,50 +77,31 @@ const Profile = () => {
     }
   };
 
-  // const verifyUser = async (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   setLoadingCode(true);
-  //   setVerifySuccess("");
-  //   setVerifyError("");
-  //   try {
-  //     await handleVerifyUserEmail(email, providedCode);
-  //   } catch (error: any) {
-  //     setVerifyError(error.message || "Error verifying code.");
-  //   } finally {
-  //     setLoadingCode(false);
-  //   }
-  // };
-
-  // const sendVerificationEmail = async () => {
-  //   setLoading(true);
-  //   setVerifySuccess("");
-  //   setVerifyError("");
-  //   try {
-  //     await handleSendVerificationCode(email);
-  //   } catch (error: any) {
-  //     setVerifyError(error.message || "Error sending verification email.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const editUserData = async (formData: {
-    firstName: string;
-    lastName: string;
-  }) => {
-    setLoading(true);
-    setProfileSuccess("");
-    setProfileError("");
+  // Delete user handler
+  const deleteUser = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setDeleteLoading(true);
+    setDeleteError("");
+    setDeleteSuccess("");
+    if (deleteConfirm !== "I am sure") {
+      setDeleteError("You must type 'I am sure' to confirm deletion.");
+      setDeleteLoading(false);
+      return;
+    }
+    if (!deletePassword) {
+      setDeleteError("Please enter your password to confirm deletion.");
+      setDeleteLoading(false);
+      return;
+    }
     try {
-      await handleEditUserData({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      });
-      setProfileSuccess("Profile updated successfully!");
+      await handleDeleteUser({ password: deletePassword });
+      setDeleteSuccess("Your account has been deleted.");
+      setShowDeletePopup(false);
+      // Optionally, redirect or log out the user here
     } catch (error: any) {
-      setProfileError(error.message || "Error updating user data.");
+      setDeleteError(error.message || "Failed to delete account.");
     } finally {
-      setLoading(false);
+      setDeleteLoading(false);
     }
   };
 
@@ -163,21 +124,6 @@ const Profile = () => {
                   </span>
                 </p>
               </div>
-              <a
-                href="https://status.saifabdelrazek.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden md:flex items-center ml-4"
-                title="View detailed service status"
-              >
-                <img
-                  src={
-                    "https://uptime.saifabdelrazek.com/api/badge/3/status?upColor=%2360a5fa&downColor=%23f87171&pendingColor=%23fbbf24&maintenanceColor=%234ade80&style=for-the-badge"
-                  }
-                  alt="Service Status"
-                  className="h-6 mr-2 drop-shadow-lg rounded-full border border-white"
-                />
-              </a>
             </div>
             <form
               className="space-y-5"
@@ -186,7 +132,16 @@ const Profile = () => {
                 setLoading(true);
                 setProfileSuccess("");
                 setProfileError("");
-                await editUserData(formData)
+                const formDataToSubmit = {
+                  firstName: formData.firstName.trim(),
+                  lastName: formData.lastName.trim(),
+                };
+                if (!formDataToSubmit.firstName && !formDataToSubmit.lastName) {
+                  setProfileError("Please fill at least one field.");
+                  setLoading(false);
+                  return;
+                }
+                await handleEditUserData(formDataToSubmit)
                   .then(() => {
                     setProfileSuccess("Profile updated successfully!");
                   })
@@ -342,6 +297,14 @@ const Profile = () => {
                 <div className="text-red-600 font-semibold mt-2">{pwError}</div>
               )}
               <div className="flex justify-end mt-4">
+                <div className="flex-1 flex items-center">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-blue-600 hover:underline dark:text-blue-400 mr-4"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
                 <button
                   type="submit"
                   disabled={pwLoading}
@@ -352,6 +315,95 @@ const Profile = () => {
               </div>
             </form>
           </div>
+
+          {/* Delete User Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mt-8">
+            <label className="text-lg font-semibold block mb-2 text-red-600 dark:text-red-400">
+              Delete Account
+            </label>
+            <p className="text-sm text-gray-700 dark:text-gray-200 mb-2">
+              This action is{" "}
+              <span className="font-bold text-red-600">irreversible</span>.
+            </p>
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => setShowDeletePopup(true)}
+                className="px-6 py-3 rounded-lg text-white font-semibold transition bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+              >
+                Delete Account
+              </button>
+            </div>
+            {deleteSuccess && (
+              <div className="text-green-600 font-semibold mt-4">
+                {deleteSuccess}
+              </div>
+            )}
+            {deleteError && (
+              <div className="text-red-600 font-semibold mt-4">
+                {deleteError}
+              </div>
+            )}
+          </div>
+
+          {/* Delete Confirmation Popup */}
+          {showDeletePopup && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 max-w-sm w-full">
+                <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
+                  Confirm Account Deletion
+                </h2>
+                <p className="text-sm text-gray-700 dark:text-gray-200 mb-4">
+                  To confirm, type <span className="font-bold">I am sure</span>{" "}
+                  and enter your password below.
+                </p>
+                <form onSubmit={deleteUser} className="space-y-4">
+                  <input
+                    type="text"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder="Type: I am sure"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                  <input
+                    type="password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                  {deleteError && (
+                    <div className="text-red-600 font-semibold">
+                      {deleteError}
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDeletePopup(false);
+                        setDeleteConfirm("");
+                        setDeletePassword("");
+                        setDeleteError("");
+                      }}
+                      className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={deleteLoading}
+                      className="px-6 py-2 rounded-lg text-white font-semibold transition bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+                    >
+                      {deleteLoading ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

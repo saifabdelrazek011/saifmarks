@@ -4,14 +4,15 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  Get,
   Res,
-  Query,
   Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto, SignInDto } from './dto';
 import { Response } from 'express';
+import { GetUser } from './decorator';
+import { JwtGuard } from './guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
@@ -33,15 +34,38 @@ export class AuthController {
     return this.authService.signout(res);
   }
 
-  @Patch('verify-email')
+  @UseGuards(JwtGuard)
+  @Patch('verification')
   @HttpCode(HttpStatus.OK)
-  verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
+  verifyEmail(
+    @GetUser('id') id: string,
+    @Body('email') email: string,
+    @Body('token') token: string,
+  ) {
+    return this.authService.verifyEmail(id, email, token);
   }
 
-  @Post('verify-email')
+  @UseGuards(JwtGuard)
+  @Patch('verification/send')
   @HttpCode(HttpStatus.OK)
-  sendVerificationEmail(@Body('email') email: string) {
-    return this.authService.sendVerificationEmail(email);
+  sendVerificationEmail(
+    @GetUser('id') id: string,
+    @Body('email') email: string,
+  ) {
+    return this.authService.sendVerificationEmail(id, email);
+  }
+
+  @Patch('password/reset/send')
+  sendResetPasswordEmail(@Body('email') email: string) {
+    return this.authService.sendResetPasswordEmail(email);
+  }
+
+  @Patch('password/reset')
+  resetPassword(
+    @Body('email') email: string,
+    @Body('newPassword') newPassword: string,
+    @Body('token') token: string,
+  ) {
+    return this.authService.resetPassword(email, newPassword, token);
   }
 }

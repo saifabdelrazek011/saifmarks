@@ -17,7 +17,7 @@ export type UserDataType = {
 export type UserEmailType = {
   id: string;
   email: string;
-  verified: boolean;
+  isVerified: boolean;
   isPrimary: boolean;
   createdAt: Date;
   updatedAt: Date;

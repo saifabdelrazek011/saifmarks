@@ -38,17 +38,6 @@ const Sidebar = ({
             Dashboard
           </Link>
           <Link
-            to="/bookmarks"
-            className={`${
-              activePage === "bookmarks"
-                ? "text-blue-700 dark:text-blue-300"
-                : "text-gray-700"
-            } sidebar-link`}
-            onClick={() => setOpen(false)}
-          >
-            Bookmarks
-          </Link>
-          <Link
             to="/settings"
             className={`${
               activePage === "settings"

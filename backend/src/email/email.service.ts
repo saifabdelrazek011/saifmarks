@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { verifyEmail } from '../../template/verify-email';
+import { resetPasswordEmail } from '../../template/reset-password-email';
+
+const frontendUrl = process.env.FRONTEND_URL || 'https://marks.saifdev.org';
 
 @Injectable()
 export class EmailService {
@@ -7,37 +11,45 @@ export class EmailService {
 
   async sendVerificationEmail({
     to,
-    subject,
-    template,
     token,
+    subject,
   }: {
     to: string;
-    subject: string;
-    template: string;
     token: string;
+    subject: string;
   }): Promise<void> {
     try {
-      const frontendUrl = process.env.FRONTEND_URL;
-      console.log(
-        `Sending verification email to ${to} with token ${token} and frontend URL ${frontendUrl}`,
-      );
+      const html = verifyEmail(token, frontendUrl);
 
       await this.mailerService.sendMail({
         to,
         subject,
-        html: `
-          <p>Click the button below to verify your email:</p>
-          <a href="${frontendUrl}/verify-email?token=${token}" class="verify-button">
-            Verify My Email
-          </a>
-          <p>Or copy and paste the following link into your browser:</p>
-          <a href="${frontendUrl}/verify-email?token=${token}">
-            ${frontendUrl}/verify-email?token=${token}
-          </a>
-        `,
+        html,
       });
     } catch (error) {
-      throw new Error('Failed to send verification email');
+      console.error('Error sending verification email:', error);
+      throw error;
+    }
+  }
+
+  async sendResetPasswordCodeEmail({
+    to,
+    code,
+  }: {
+    to: string;
+    code: string | number;
+  }) {
+    try {
+      const html = resetPasswordEmail(code, frontendUrl);
+
+      await this.mailerService.sendMail({
+        to,
+        subject: `Reset Password Code`,
+        html,
+      });
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      throw error;
     }
   }
 }

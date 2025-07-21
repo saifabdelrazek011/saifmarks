@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   useContext,
   createContext,
@@ -20,8 +21,11 @@ import {
   deleteBookmark,
   changePassword,
   sendVerificationCode,
+  sendResetPasswordEmail,
   verifyUser,
   editUserData,
+  deleteUser,
+  resetPassword,
 } from "../services";
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -64,6 +68,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isUserLoading, setIsUserLoading] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
   // Bookmarks state
   const [bookmarks, setBookmarks] = useState<BookmarkType[]>([]);
@@ -73,20 +78,50 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<string>("dark");
 
   // Themes Functions
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
-  };
+  useEffect(() => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
+  // On mount, set theme from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
-  }, [theme]);
+  // Themes Functions
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+  };
+
+  const handleSendResetPassword = async (email: string) => {
+    try {
+      await sendResetPasswordEmail(email);
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to send reset password email"
+      );
+    }
+  };
+
+  const handleResetPassword = async (
+    email: string,
+    token: string,
+    newPassword: string
+  ) => {
+    try {
+      await resetPassword(email, token, newPassword);
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to reset password"
+      );
+    }
+  };
 
   // Fetch bookmarks
   const fetchBookmarks = async () => {
@@ -196,7 +231,6 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
       if (user.id && user.emails.length > 0) {
         setIsAuthenticated(true);
-        [];
       }
     } catch (error) {
       setIsAuthenticated(false);
@@ -268,6 +302,8 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
       // Call the verification API
       await verifyUser(email, providedCode);
+      // Update user data after verification
+      await handleUpdateUserData();
     } catch (error) {
       throw new Error(
         typeof error === "object" && error !== null && "message" in error
@@ -279,6 +315,19 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleDeleteUser = async ({ password }: { password: string }) => {
+    try {
+      await deleteUser({ password });
+      await handleUpdateUserData();
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to delete user"
+      );
+    }
+  };
+
   // Get the current user data
   useEffect(() => {
     if ((!userData.success || !userData.user.id) && !globalError) {
@@ -286,11 +335,14 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Fetch bookmarks when user data is updated
+  // Fetch bookmarks and setVerification state when user data is updated
   useEffect(() => {
     if (userData.success && userData.user.id) {
       fetchBookmarks();
     }
+    setIsVerified(
+      userData.user.emails.find((email) => email.isPrimary)?.isVerified || false
+    );
   }, [userData]);
 
   const value: DashboardContextType = {
@@ -298,12 +350,16 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     user,
     userData,
     isAuthenticated,
+    isVerified,
     isUserLoading,
 
     // User related functions
     handleEditUserData,
     handleUpdateUserData,
     handleChangePassword,
+    handleDeleteUser,
+    handleSendResetPassword,
+    handleResetPassword,
 
     // Verify User Email
     handleSendVerificationCode,

@@ -1,4 +1,3 @@
-import { Email } from '@prisma/client';
 import { User } from '@prisma/client';
 
 type OmitUserPassword = Omit<User, 'hashedPassword'>;

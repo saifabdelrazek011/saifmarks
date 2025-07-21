@@ -28,8 +28,8 @@ model User {
 
   bookmarks Bookmark[]
 
-  changePasswordToken   String?   @unique
-  changePasswordExpires DateTime?
+  resetPasswordToken   String?   @unique
+  resetPasswordExpires DateTime?
 
   @@map("users")
 }
