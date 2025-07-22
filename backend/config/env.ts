@@ -17,4 +17,5 @@ export const {
   FRONTEND_URL,
   ARCJET_ENV,
   ARCJET_KEY,
+  SHORT_URL_DOMAIN,
 } = process.env;

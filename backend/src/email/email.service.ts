@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { verifyEmail } from '../../template/verify-email';
 import { resetPasswordEmail } from '../../template/reset-password-email';
+import { FRONTEND_URL } from '../../config/env';
 
-const frontendUrl = process.env.FRONTEND_URL || 'https://marks.saifdev.org';
+const frontendUrl = FRONTEND_URL || 'https://marks.saifdev.org';
 
 @Injectable()
 export class EmailService {

@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BookmarkService } from './bookmark.service';
+import { ShortUrlService } from '../shorturl/shorturl.service';
 import { GetUser } from '../auth/decorator';
 import { UpdateBookmarkDto, CreateBookmarkDto } from './dto';
 import { JwtGuard } from '../auth/guard';
@@ -17,7 +18,10 @@ import { JwtGuard } from '../auth/guard';
 @UseGuards(JwtGuard)
 @Controller('bookmarks')
 export class BookmarkController {
-  constructor(private bookmarkService: BookmarkService) {}
+  constructor(
+    private bookmarkService: BookmarkService,
+    private shortUrlService: ShortUrlService,
+  ) {}
 
   @Get()
   async getBookmarks(@GetUser('id') userId: string) {
@@ -63,5 +67,19 @@ export class BookmarkController {
     @Param('bookmarkId') bookmarkId: string,
   ) {
     return this.bookmarkService.deleteBookmark(userId, bookmarkId);
+  }
+
+  @Post('/shorten/:bookmarkId')
+  async createShortUrlForBookmark(
+    @GetUser('id') userId: string,
+    @Body('shortUrl') shortUrl: string | undefined,
+    @Param('bookmarkId') bookmarkId: string,
+  ) {
+    console.log('Creating short URL for bookmark:', bookmarkId);
+    return this.shortUrlService.createShortUrlForBookmark(
+      userId,
+      bookmarkId,
+      shortUrl,
+    );
   }
 }

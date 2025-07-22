@@ -10,6 +10,7 @@ export const getUserBookmarks = async (): Promise<BookmarkType[]> => {
       throw new Error("Error while getting the user bookmarks from data");
     }
 
+    console.log(response.data);
     return response.data.bookmarks;
   } catch (error) {
     throw new Error("Failed to fetch bookmarks " + error);
@@ -23,6 +24,7 @@ export const createBookmark = async (
     const response = await api.post(`/bookmarks`, bookmarkData, {
       withCredentials: true,
     });
+
     return response?.data?.bookmark;
   } catch (error) {
     if (
