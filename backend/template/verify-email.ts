@@ -140,11 +140,11 @@ export const verifyEmail = (code, frontendUrl) => {
         </div>
 
         <p>
-          <a href="${frontendUrl}/verify" class="cta-button">Verify Email Now</a>
+          <a href="${frontendUrl}/#/verify" class="cta-button">Verify Email Now</a>
         </p>
 
         <div class="notice-box">
-          <p><strong>How to verify:</strong> Enter the code above on the <a href="${frontendUrl}/verify">verification page</a>, or click the button.</p>
+          <p><strong>How to verify:</strong> Enter the code above on the <a href="${frontendUrl}/#/verify">verification page</a>, or click the button.</p>
         </div>
 
         <div class="notice-box security-notice">

@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id        String   @id @unique @default(uuid())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -27,6 +27,7 @@ model User {
   isAdmin Boolean @default(false)
 
   bookmarks Bookmark[]
+  shortUrls ShortUrl[]
 
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
@@ -35,7 +36,7 @@ model User {
 }
 
 model Email {
-  id        String   @id @unique @default(uuid())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -54,7 +55,7 @@ model Email {
 }
 
 model Bookmark {
-  id        String   @id @unique @default(uuid())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -67,6 +68,28 @@ model Bookmark {
 
   userBookmarkId Int @default(autoincrement())
 
+  shortUrlId String?  @unique
+  shortUrl   ShortUrl? 
+
   @@unique([userId, userBookmarkId])
   @@map("bookmarks")
+}
+
+model ShortUrl {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fullUrl      String   
+  shortUrl     String   @unique
+  clicks       Int      @default(0)
+
+  createdById String
+  createdBy   User    @relation(fields: [createdById], references: [id])
+
+  bookmarkId  String?   @unique
+  bookmark    Bookmark? @relation(fields: [bookmarkId], references: [id])
+
+  @@unique([createdById, fullUrl])
+  @@map("shorturls")
 }

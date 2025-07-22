@@ -3,7 +3,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ARCJET_KEY } from '../config';
@@ -16,6 +16,7 @@ import {
   fixedWindow,
   shield,
 } from '@arcjet/nest';
+import { ShortUrlModule } from './shorturl/shorturl.module';
 @Module({
   imports: [
     // Load ConfigModule FIRST
@@ -70,6 +71,7 @@ import {
     BookmarkModule,
     PrismaModule,
     EmailModule,
+    ShortUrlModule,
   ],
   controllers: [],
   providers: [

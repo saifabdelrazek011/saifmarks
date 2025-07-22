@@ -7,6 +7,10 @@
     "^.+\\.ts$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^src/(.*)$": "<rootDir>/src/$1"
-  }
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^template/(.*)$": "<rootDir>/template/$1",
+    "^@/(.*)$": "<rootDir>/$1",
+    "^config$": "<rootDir>/src/config"
+  },
+  "setupFiles": ["<rootDir>/test/setupEnv.ts"]
 }
