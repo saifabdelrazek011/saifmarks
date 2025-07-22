@@ -69,12 +69,13 @@ export class BookmarkController {
     return this.bookmarkService.deleteBookmark(userId, bookmarkId);
   }
 
-  @Post(':bookmarkId/shorten')
+  @Post('/shorten/:bookmarkId')
   async createShortUrlForBookmark(
     @GetUser('id') userId: string,
     @Body('shortUrl') shortUrl: string | undefined,
     @Param('bookmarkId') bookmarkId: string,
   ) {
+    console.log('Creating short URL for bookmark:', bookmarkId);
     return this.shortUrlService.createShortUrlForBookmark(
       userId,
       bookmarkId,

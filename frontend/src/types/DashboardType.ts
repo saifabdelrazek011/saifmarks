@@ -1,6 +1,7 @@
 import type { UserDataType, UserType } from "./UserTypes";
 import type { BookmarkType } from "./BookmarkTypes";
 import type { ChangePasswordType } from "./AuthTypes";
+import type { ShortUrlType } from "./ShortUrlTypes";
 
 export type AddBookmarksReturn =
   | {
@@ -46,8 +47,35 @@ export type DashboardContextType = {
   handleEditBookmark: (updateBookmarkData: BookmarkType) => void;
   handleDeleteBookmark: (bookmarkId: string) => void;
 
-  // Themes related properties
+  // ShortUrls
+  shortUrls: ShortUrlType[];
+  isShortUrlsLoading?: boolean;
+  handleAddShortUrl: (fullUrl: string, shortUrl?: string) => Promise<void>;
+  handleEditShortUrl: (
+    id: string,
+    fullUrl: string,
+    shortUrl: string
+  ) => Promise<void>;
+  handleDeleteShortUrl: (id: string) => Promise<void>;
+
+  // Shorten Bookmark URL
+  handleShortenBookmarkUrl: (
+    bookmarkId: string,
+    shortUrl?: string
+  ) => Promise<void>;
+
+  // Settings
+  // Themes toggle
   toggleTheme: () => void;
 
+  // Hide Welcome
+  hideWelcome: boolean;
+  setHideWelcome: (hide: boolean) => void;
+
+  // Short Domain
+  shortDomain: string;
+  setShortDomain: (domain: string) => void;
+
+  // Global Error
   globalError?: string;
 };

@@ -1,8 +1,11 @@
+import type { ShortUrlType } from "./ShortUrlTypes";
+
 export type BookmarkType = {
   id: string;
   title: string;
   url: string;
   description?: string;
+  shortUrl?: ShortUrlType;
 };
 
 export type BookmarkDataType = {

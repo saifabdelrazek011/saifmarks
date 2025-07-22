@@ -18,6 +18,7 @@ import AuthRoute from "./routes/AuthRoute";
 import RouteTracker from "./RouteTracker";
 import Verify from "../pages/auth/Verify";
 import VerifyRoute from "./routes/VerifyRoute";
+import ShortUrls from "../pages/user/ShortUrls";
 
 function Router() {
   return (
@@ -32,6 +33,14 @@ function Router() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shorturls"
+            element={
+              <ProtectedRoute>
+                <ShortUrls />
               </ProtectedRoute>
             }
           />

@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -36,7 +36,7 @@ model User {
 }
 
 model Email {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -55,13 +55,14 @@ model Email {
 }
 
 model Bookmark {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   title       String
   description String?
   url         String
+  tags        String[] @default([])
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -76,11 +77,11 @@ model Bookmark {
 }
 
 model ShortUrl {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  fullUrl      String   
+  fullUrl      String     
   shortUrl     String   @unique
   clicks       Int      @default(0)
 

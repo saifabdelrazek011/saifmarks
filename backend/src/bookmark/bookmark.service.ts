@@ -34,6 +34,9 @@ export class BookmarkService {
       const bookmarks = await this.prisma.bookmark.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
+        include: {
+          shortUrl: true,
+        },
       });
 
       if (!bookmarks) {

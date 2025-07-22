@@ -92,9 +92,9 @@ function Verify() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-6 bg-white/80 dark:bg-gray-900/80 shadow-md backdrop-blur-md">
+      <header className="flex justify-between items-center px-8 py-6 bg-white/70 dark:bg-gray-900/70 shadow-md backdrop-blur-md">
         <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">
           Saif<span className="text-blue-500 dark:text-blue-300">Marks</span>
         </h1>
@@ -110,7 +110,7 @@ function Verify() {
       <main className="flex flex-1 flex-col items-center justify-center px-4">
         <div className="max-w-2xl w-full">
           {isVerified ? (
-            <div className="rounded-xl shadow-lg p-8 flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-red-100 text-blue-900 dark:from-blue-900 dark:via-gray-900 dark:to-gray-800 dark:text-blue-100">
+            <div className="rounded-2xl shadow-lg p-8 flex flex-col items-center bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200/80 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800/80 text-blue-900 dark:text-blue-100 border border-blue-100 dark:border-gray-800 transition-colors duration-300">
               <svg
                 className="w-12 h-12 text-green-500 mb-3"
                 fill="none"
@@ -132,7 +132,7 @@ function Verify() {
               </p>
             </div>
           ) : (
-            <div className="rounded-xl shadow-lg p-8 flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-red-100 text-blue-900 dark:from-blue-900 dark:via-gray-900 dark:to-gray-800 dark:text-blue-100">
+            <div className="rounded-2xl shadow-lg p-8 flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-blue-100/80 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800/80 text-blue-900 dark:text-blue-100 border border-blue-100 dark:border-gray-800 transition-colors duration-300">
               <svg
                 className="w-12 h-12 text-yellow-400 mb-3"
                 fill="none"
@@ -158,7 +158,7 @@ function Verify() {
                 {!verificationSent && (
                   <button
                     onClick={loading ? undefined : sendVerificationEmail}
-                    className="mt-2 px-6 py-3 rounded-full bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition"
+                    className="mt-2 px-6 py-3 rounded-full bg-blue-600/90 text-white font-semibold shadow hover:bg-blue-700 transition"
                   >
                     {loading ? "Sending..." : "Send Verification Email"}
                   </button>
@@ -187,14 +187,14 @@ function Verify() {
                     id="providedCode"
                     value={providedCode}
                     onChange={(e) => setProvidedCode(e.target.value)}
-                    className="mb-2 p-2 rounded-lg border w-64 bg-white text-blue-900 border-blue-200 dark:bg-gray-800 dark:text-blue-100 dark:border-blue-900"
+                    className="mb-2 p-2 rounded-lg border w-64 bg-white/80 text-blue-900 border-blue-200 dark:bg-gray-800/80 dark:text-blue-100 dark:border-blue-900"
                     placeholder="Enter the code from your email"
                     required
                   />
                   <button
                     type="submit"
                     disabled={loadingCode}
-                    className="px-6 py-2 rounded-full bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition"
+                    className="px-6 py-2 rounded-full bg-blue-600/90 text-white font-semibold shadow hover:bg-blue-700 transition"
                   >
                     {loadingCode ? "Verifying..." : "Verify Code"}
                   </button>
@@ -209,7 +209,7 @@ function Verify() {
       <div className="max-w-2xl mx-auto py-6 px-4 flex justify-center gap-4">
         <button
           onClick={() => navigate("/contact")}
-          className="px-6 py-3 rounded-full bg-blue-400 text-white font-semibold shadow hover:bg-blue-500 transition"
+          className="px-6 py-3 rounded-full bg-blue-400/90 text-white font-semibold shadow hover:bg-blue-500 transition"
         >
           Contact Support
         </button>
@@ -222,5 +222,4 @@ function Verify() {
     </div>
   );
 }
-
 export default Verify;

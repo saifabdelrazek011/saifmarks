@@ -7,10 +7,45 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { nanoid } from 'nanoid';
 import { SHORT_URL_DOMAIN } from '../../config/env';
+import { urlRegex } from 'src/regex';
 
 @Injectable()
 export class ShortUrlService {
   constructor(private readonly prisma: PrismaService) {}
+
+  // Generate a short URL
+  private async generateShortUrl(shortUrl?: string): Promise<string> {
+    let short = shortUrl;
+    if (short) {
+      // User provided a custom short URL
+      const existingShort = await this.prisma.shortUrl.findUnique({
+        where: { shortUrl: short },
+      });
+      if (existingShort) {
+        throw new BadRequestException(
+          'Custom short URL already exists. Please choose another or send empty string to generate a random one.',
+        );
+      }
+    } else {
+      // Auto-generate a unique short URL
+      let attempts = 0;
+      do {
+        short = nanoid(7);
+        const existingShort = await this.prisma.shortUrl.findUnique({
+          where: { shortUrl: short },
+        });
+        if (!existingShort) break;
+        attempts++;
+      } while (attempts < 100);
+
+      if (attempts === 100) {
+        throw new Error(
+          'Failed to generate a unique short URL after 100 attempts.',
+        );
+      }
+    }
+    return short;
+  }
 
   // Check if a short URL exists for a user
   async checkShortUrlExists(shortUrlId: string, userId: string) {
@@ -92,6 +127,7 @@ export class ShortUrlService {
 
       const shortUrls = await this.prisma.shortUrl.findMany({
         where: { createdById: userId },
+        include: { bookmark: true },
       });
 
       if (!shortUrls.length) {
@@ -127,11 +163,16 @@ export class ShortUrlService {
 
       const shortUrls = await this.prisma.shortUrl.findMany({
         where: { createdById: userId },
+        include: { bookmark: true },
       });
 
       // Check if the user has any short URLs 0 is falsey others are truthy
       if (!shortUrls.length) {
-        throw new NotFoundException('No short URLs found for you.');
+        return {
+          success: false,
+          message: 'No short URLs found for you.',
+          shortUrls: [],
+        };
       }
 
       return {
@@ -272,37 +313,16 @@ export class ShortUrlService {
         );
 
       if (!fullUrl) throw new BadRequestException('Full URL is required.');
+      if (!urlRegex.test(fullUrl)) {
+        throw new BadRequestException('Invalid URL format.');
+      }
 
       const domain = SHORT_URL_DOMAIN || 'https://go.died.pw';
 
-      let short = shortUrl;
-      if (short) {
-        // User provided a custom short URL
-        const existingShort = await this.prisma.shortUrl.findUnique({
-          where: { shortUrl: short },
-        });
-        if (existingShort) {
-          throw new BadRequestException(
-            'Custom short URL already exists. Please choose another or send empty string to generate a random one.',
-          );
-        }
-      } else {
-        // Auto-generate a unique short URL
-        let attempts = 0;
-        do {
-          short = nanoid(7);
-          const existingShort = await this.prisma.shortUrl.findUnique({
-            where: { shortUrl: short },
-          });
-          if (!existingShort) break;
-          attempts++;
-        } while (attempts < 100);
+      const short = await this.generateShortUrl(shortUrl);
 
-        if (attempts === 100) {
-          throw new Error(
-            'Failed to generate a unique short URL after 100 attempts.',
-          );
-        }
+      if (!short) {
+        throw new BadRequestException('Failed to generate a short URL.');
       }
 
       const existingFull = await this.prisma.shortUrl.findFirst({
@@ -440,6 +460,9 @@ export class ShortUrlService {
       if (!fullUrl) {
         throw new BadRequestException('Full URL is required.');
       }
+      if (!urlRegex.test(fullUrl)) {
+        throw new BadRequestException('Invalid URL format.');
+      }
       const updaterUser = await this.prisma.user.findUnique({
         where: { id: updaterUserId },
         include: { emails: true },
@@ -573,8 +596,8 @@ export class ShortUrlService {
 
   // Create a short URL for a bookmark
   async createShortUrlForBookmark(
-    bookmarkId: string,
     userId: string,
+    bookmarkId: string,
     shortUrl: string | undefined,
   ) {
     try {
@@ -594,53 +617,25 @@ export class ShortUrlService {
 
       if (!bookmarkId)
         throw new BadRequestException('Bookmark ID is required.');
-
       const bookmark = await this.prisma.bookmark.findUnique({
         where: { id: bookmarkId },
+        include: { user: true, shortUrl: true },
       });
 
-      if (!bookmark) {
+      if (!bookmark || bookmark.userId !== userId)
         throw new NotFoundException('Bookmark not found.');
-      }
+      console.log('Bookmark found:', bookmark);
 
-      let short = shortUrl;
-      if (short) {
-        // User provided a custom short URL
-        const existingShort = await this.prisma.shortUrl.findUnique({
-          where: { shortUrl: short },
-        });
-        if (existingShort) {
-          throw new BadRequestException(
-            'Custom short URL already exists. Please choose another or send empty string to generate a random one.',
-          );
-        }
-      } else {
-        // Auto-generate a unique short URL
-        let attempts = 0;
-        do {
-          short = nanoid(7);
-          const existingShort = await this.prisma.shortUrl.findUnique({
-            where: { shortUrl: short },
-          });
-          if (!existingShort) break;
-          attempts++;
-        } while (attempts < 100);
-
-        if (attempts === 100) {
-          throw new Error(
-            'Failed to generate a unique short URL after 100 attempts.',
-          );
-        }
-      }
-
-      const existingFull = await this.prisma.shortUrl.findFirst({
-        where: { createdById: userId, fullUrl: bookmark.url },
-      });
-
-      if (existingFull) {
+      if (bookmark.shortUrl) {
         throw new BadRequestException(
-          `You have already created a short URL for this full URL: ${existingFull.shortUrl}. Please use that or delete it first.`,
+          'This bookmark already has a short URL. Please delete it first if you want to create a new one.',
         );
+      }
+
+      const short = await this.generateShortUrl(shortUrl);
+
+      if (!short) {
+        throw new BadRequestException('Failed to generate a short URL.');
       }
 
       const createdShortUrl = await this.prisma.shortUrl.create({
@@ -648,13 +643,17 @@ export class ShortUrlService {
           fullUrl: bookmark.url,
           shortUrl: short,
           createdById: userId,
-          bookmarkId: bookmarkId,
+          bookmarkId: bookmark.id,
         },
       });
 
+      if (!createdShortUrl) {
+        throw new Error('Short URL creation for bookmark failed.');
+      }
+
       return {
         success: true,
-        message: 'Short URL created successfully.',
+        message: 'Short URL for bookmark created successfully.',
         shortUrl: createdShortUrl,
       };
     } catch (error) {

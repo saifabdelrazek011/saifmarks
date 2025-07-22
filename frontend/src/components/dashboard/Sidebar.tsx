@@ -13,7 +13,7 @@ const Sidebar = ({
   const [activePage, setActivePage] = useState<string>("");
 
   useEffect(() => {
-    const currentActivePage = window.location.href.split("#/")[1];
+    const currentActivePage = window.location.href.split("/#")[1];
 
     setActivePage(currentActivePage);
   }, [window.location.href]);
@@ -29,7 +29,7 @@ const Sidebar = ({
           <Link
             to="/dashboard"
             className={`${
-              activePage === "dashboard"
+              activePage === "/dashboard"
                 ? "text-blue-700 dark:text-blue-300"
                 : "text-gray-700"
             } sidebar-link`}
@@ -38,9 +38,20 @@ const Sidebar = ({
             Dashboard
           </Link>
           <Link
+            to="/shorturls"
+            className={`${
+              activePage === "/shorturls"
+                ? "text-blue-700 dark:text-blue-300"
+                : "text-gray-700"
+            } sidebar-link`}
+            onClick={() => setOpen(false)}
+          >
+            Short URLs
+          </Link>
+          <Link
             to="/settings"
             className={`${
-              activePage === "settings"
+              activePage === "/settings"
                 ? "text-blue-700 dark:text-blue-300"
                 : "text-gray-700"
             } sidebar-link`}
@@ -51,7 +62,7 @@ const Sidebar = ({
           <Link
             to="/profile"
             className={`${
-              activePage === "profile"
+              activePage === "/profile"
                 ? "text-blue-700 dark:text-blue-300"
                 : "text-gray-700"
             } sidebar-link`}

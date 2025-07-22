@@ -12,6 +12,7 @@ import {
   type UserDataType,
   type BookmarkType,
   type ChangePasswordType,
+  type ShortUrlType,
 } from "../types";
 import {
   getUserBookmarks,
@@ -26,6 +27,11 @@ import {
   editUserData,
   deleteUser,
   resetPassword,
+  getUserShortUrls,
+  createShortUrl,
+  updateShortUrl,
+  deleteShortUrl,
+  shortenBookmarkUrl,
 } from "../services";
 
 const DashboardContext = createContext<DashboardContextType | undefined>(
@@ -73,6 +79,38 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   // Bookmarks state
   const [bookmarks, setBookmarks] = useState<BookmarkType[]>([]);
   const [isBookmarksLoading, setIsBookmarksLoading] = useState<boolean>(false);
+
+  // Shorturls
+  const [shortUrls, setShortUrls] = useState<ShortUrlType[]>([]);
+  const [isShortUrlsLoading, setIsShortUrlsLoading] = useState(false);
+
+  // shortDomain
+  const [shortDomain, setShortDomain] = useState<string>("go.died.pw");
+
+  // Themes Functions
+  useEffect(() => {
+    localStorage.setItem("shortDomain", shortDomain);
+  }, [shortDomain]);
+
+  useEffect(() => {
+    const storedShortDomain = localStorage.getItem("shortDomain");
+    if (storedShortDomain) {
+      setShortDomain(storedShortDomain);
+    }
+  }, []);
+
+  // Hide Welcome in Dashboard
+  const [hideWelcome, setHideWelcome] = useState<boolean>(false);
+  useEffect(() => {
+    const storedHideWelcome = localStorage.getItem("hideWelcome");
+    if (storedHideWelcome) {
+      setHideWelcome(storedHideWelcome === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("hideWelcome", String(hideWelcome));
+  }, [hideWelcome]);
 
   // Themes
   const [theme, setTheme] = useState<string>("dark");
@@ -328,6 +366,100 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchShortUrls = async () => {
+    setIsShortUrlsLoading(true);
+    try {
+      const urls = await getUserShortUrls();
+      if (urls.length === 0) {
+        const baseUrl = window.location.href.split("/#/")[0];
+        const exampleShortUrl = {
+          id: "test",
+          fullUrl: `${baseUrl}/#/shorturls`,
+          shortUrl: "example",
+          clicks: 0,
+          createdById: userData.user.id,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        setShortUrls([exampleShortUrl]);
+      }
+      if (urls) {
+        setShortUrls(urls);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to fetch short URLs"
+      );
+    } finally {
+      setIsShortUrlsLoading(false);
+    }
+  };
+
+  const handleAddShortUrl = async (fullUrl: string, shortUrl?: string) => {
+    setIsShortUrlsLoading(true);
+    try {
+      await createShortUrl(fullUrl, shortUrl);
+      await fetchShortUrls();
+    } finally {
+      setIsShortUrlsLoading(false);
+    }
+  };
+
+  const handleEditShortUrl = async (
+    id: string,
+    fullUrl: string,
+    shortUrl: string
+  ) => {
+    setIsShortUrlsLoading(true);
+    try {
+      await updateShortUrl(id, fullUrl, shortUrl);
+      await fetchShortUrls();
+    } finally {
+      setIsShortUrlsLoading(false);
+    }
+  };
+
+  const handleDeleteShortUrl = async (id: string) => {
+    setIsShortUrlsLoading(true);
+    try {
+      await deleteShortUrl(id);
+      await fetchShortUrls();
+    } finally {
+      setIsShortUrlsLoading(false);
+    }
+  };
+
+  const handleShortenBookmarkUrl = async (
+    bookmarkId: string,
+    shortUrl?: string
+  ) => {
+    setIsShortUrlsLoading(true);
+    setIsBookmarksLoading(true);
+    try {
+      await shortenBookmarkUrl(bookmarkId, shortUrl);
+      await fetchShortUrls();
+      await fetchBookmarks();
+    } catch (error) {
+      throw new Error(
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message?: string }).message)
+          : "Failed to shorten bookmark URL"
+      );
+    } finally {
+      setIsShortUrlsLoading(false);
+      setIsBookmarksLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchShortUrls();
+  }, []);
+
   // Get the current user data
   useEffect(() => {
     if ((!userData.success || !userData.user.id) && !globalError) {
@@ -374,9 +506,30 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     handleEditBookmark,
     handleDeleteBookmark,
 
-    // Themes related properties
+    // Short URLs related properties
+    shortUrls,
+    isShortUrlsLoading,
+
+    // Short URLs related functions
+    handleAddShortUrl,
+    handleEditShortUrl,
+    handleDeleteShortUrl,
+
+    handleShortenBookmarkUrl,
+
+    // Settings
+    // Themes toggle
     toggleTheme,
 
+    // Hide Welcome
+    hideWelcome,
+    setHideWelcome,
+
+    // Short Domain
+    shortDomain,
+    setShortDomain,
+
+    // Global Error
     globalError,
   };
 
