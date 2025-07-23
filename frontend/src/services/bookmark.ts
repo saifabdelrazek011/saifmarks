@@ -9,8 +9,6 @@ export const getUserBookmarks = async (): Promise<BookmarkType[]> => {
     if (!response.data.bookmarks) {
       throw new Error("Error while getting the user bookmarks from data");
     }
-
-    console.log(response.data);
     return response.data.bookmarks;
   } catch (error) {
     throw new Error("Failed to fetch bookmarks " + error);
@@ -59,10 +57,14 @@ export const updateBookmark = async (bookmarkData: BookmarkType) => {
   }
 };
 
-export const deleteBookmark = async (bookmarkId: string) => {
+export const deleteBookmark = async (
+  bookmarkId: string,
+  deleteShortUrl: boolean
+) => {
   try {
     const response = await api.delete(`/bookmarks/${bookmarkId}`, {
       withCredentials: true,
+      data: { deleteShortUrl },
     });
     return response.data;
   } catch (error: unknown) {

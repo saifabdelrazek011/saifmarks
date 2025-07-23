@@ -43,7 +43,7 @@ export class UserService {
       // Update the user in the database
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
-        data: { ...dto },
+        data: { firstName: dto.firstName, lastName: dto.lastName },
         include: { emails: true },
       });
 
@@ -209,6 +209,14 @@ export class UserService {
 
       if (!bookmarks) {
         throw new Error('Failed to delete user bookmarks');
+      }
+
+      const shorturls = await this.prisma.shortUrl.deleteMany({
+        where: { createdById: userId },
+      });
+
+      if (!shorturls) {
+        throw new Error('Failed to delete user short URLs');
       }
 
       const emails = await this.prisma.email.deleteMany({

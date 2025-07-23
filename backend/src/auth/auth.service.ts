@@ -550,8 +550,11 @@ export class AuthService {
       if (!isTokenValid) {
         throw new BadRequestException('Invalid reset password token');
       }
+      if (!newPassword) {
+        throw new BadRequestException('New password is required');
+      }
 
-      if (!newPassword || !passwordRegex.test(newPassword)) {
+      if (!passwordRegex.test(newPassword)) {
         throw new BadRequestException(
           'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character',
         );

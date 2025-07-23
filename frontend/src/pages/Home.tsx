@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useDashboardContext } from "../context";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
   const { isAuthenticated } = useDashboardContext();
@@ -7,25 +8,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-6 bg-white/80 dark:bg-gray-900/80 shadow-md backdrop-blur-md">
-        <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">
-          Saif<span className="text-blue-500 dark:text-blue-300">Marks</span>
-        </h1>
-        <div className="space-x-4">
-          <Link
-            to={isAuthenticated ? "/dashboard" : "/signin"}
-            className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
-          >
-            Login
-          </Link>
-          <Link
-            to={isAuthenticated ? "/dashboard" : "/signup"}
-            className="px-5 py-2 rounded-lg bg-blue-400 text-white font-semibold hover:bg-blue-500 transition"
-          >
-            Signup
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex flex-1 flex-col items-center justify-center text-center px-4">

@@ -39,7 +39,6 @@ CREATE TABLE "bookmarks" (
     "tags" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "userId" TEXT NOT NULL,
     "userBookmarkId" SERIAL NOT NULL,
-    "shortUrlId" TEXT,
 
     CONSTRAINT "bookmarks_pkey" PRIMARY KEY ("id")
 );
@@ -69,9 +68,6 @@ CREATE UNIQUE INDEX "emails_verificationToken_key" ON "emails"("verificationToke
 
 -- CreateIndex
 CREATE UNIQUE INDEX "emails_userId_isPrimary_key" ON "emails"("userId", "isPrimary");
-
--- CreateIndex
-CREATE UNIQUE INDEX "bookmarks_shortUrlId_key" ON "bookmarks"("shortUrlId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "bookmarks_userId_userBookmarkId_key" ON "bookmarks"("userId", "userBookmarkId");

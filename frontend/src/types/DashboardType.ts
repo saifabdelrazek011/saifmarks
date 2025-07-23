@@ -12,6 +12,9 @@ export type AddBookmarksReturn =
   | undefined;
 
 export type DashboardContextType = {
+  // App loading state
+  isAppLoading: boolean;
+
   // User related properties
   user: UserType;
   userData: UserDataType;
@@ -45,7 +48,7 @@ export type DashboardContextType = {
   // Bookmarks related functions
   handleAddBookmark: (newBookmarkData: Omit<BookmarkType, "id">) => void;
   handleEditBookmark: (updateBookmarkData: BookmarkType) => void;
-  handleDeleteBookmark: (bookmarkId: string) => void;
+  handleDeleteBookmark: (bookmarkId: string, deleteShortUrl: boolean) => void;
 
   // ShortUrls
   shortUrls: ShortUrlType[];
@@ -66,6 +69,7 @@ export type DashboardContextType = {
 
   // Settings
   // Themes toggle
+  theme: "light" | "dark" | "system";
   toggleTheme: () => void;
 
   // Hide Welcome

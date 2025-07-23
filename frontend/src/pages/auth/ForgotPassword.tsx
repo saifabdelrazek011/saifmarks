@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useDashboardContext } from "../../context/DashboardContext";
+import { useDashboardContext } from "../../context";
 
 function ForgotPassword() {
   const navigate = useNavigate();

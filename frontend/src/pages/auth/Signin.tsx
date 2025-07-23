@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { signin } from "../../services";
-import { useDashboardContext } from "../../context/DashboardContext";
+import { useDashboardContext } from "../../context";
 
 function Signin() {
   const [email, setEmail] = useState("");

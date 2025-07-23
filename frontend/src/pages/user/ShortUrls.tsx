@@ -15,7 +15,7 @@ function ShortUrls() {
 
   const [creating, setCreating] = useState(false);
   const [newUrl, setNewUrl] = useState({ fullUrl: "", shortUrl: "" });
-  const [editUrl, setEditUrl] = useState<ShortUrlType | null>(null);
+  const [editUrlId, setEditUrlId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ fullUrl: "", shortUrl: "" });
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ function ShortUrls() {
   };
 
   const handleEdit = (url: ShortUrlType) => {
-    setEditUrl(url);
+    setEditUrlId(url.id);
     setEditData({ fullUrl: url.fullUrl, shortUrl: url.shortUrl });
   };
 
@@ -51,10 +51,10 @@ function ShortUrls() {
   };
 
   const handleEditSave = async () => {
-    if (!editUrl) return;
+    if (!editUrlId) return;
     try {
-      await handleEditShortUrl(editUrl.id, editData.fullUrl, editData.shortUrl);
-      setEditUrl(null);
+      await handleEditShortUrl(editUrlId, editData.fullUrl, editData.shortUrl);
+      setEditUrlId(null);
     } catch (err: any) {
       setError(err.message || "Failed to update short URL");
     }
@@ -70,8 +70,8 @@ function ShortUrls() {
 
   return (
     <DashboardLayout>
-      <div className="flex-1 p-6 max-w-4xl mx-auto bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen rounded-xl shadow-lg">
-        <div className="flex justify-between items-center mb-6">
+      <div className="flex-1 p-10">
+        <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-6">
             Your Short URLs
           </h1>
@@ -79,7 +79,7 @@ function ShortUrls() {
             <div className="text-right">
               <button
                 onClick={() => setCreating(true)}
-                className="inline-block bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-blue-500 transition font-semibold border border-blue-900 dark:border-blue-900"
+                className="inline-block bg-blue-700 text-white px-6 py-2 rounded-lg shadow hover:bg-gray-900 transition font-semibold border border-blue-900 dark:border-blue-900"
               >
                 + Create New Short URL
               </button>
@@ -87,7 +87,7 @@ function ShortUrls() {
           )}
         </div>
         {error && (
-          <div className="mb-4 text-red-600 dark:text-red-400 font-semibold">
+          <div className="mb-4 text-center text-red-500 dark:text-red-400 font-semibold">
             {error}
           </div>
         )}
@@ -96,7 +96,8 @@ function ShortUrls() {
           {creating && (
             <form
               onSubmit={handleCreate}
-              className="bg-white/80 dark:bg-gray-900/80 rounded-xl shadow-lg p-4 flex flex-col gap-4 items-stretch"
+              className="w-full rounded-xl shadow-lg p-4 flex flex-col gap-4 items-stretch max-w-3xl mx-auto bg-gray-50 dark:bg-gray-800 border-2 border-blue-700 dark:border-blue-400"
+              style={{ background: "none" }}
             >
               <input
                 name="fullUrl"
@@ -119,14 +120,14 @@ function ShortUrls() {
               <div className="flex flex-col sm:flex-row gap-2 mt-2">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-2 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold shadow hover:from-blue-500 hover:to-green-500 transition"
+                  className="flex-1 px-6 py-2 rounded-lg bg-blue-700 text-white font-semibold shadow hover:bg-gray-900 transition"
                 >
                   Create
                 </button>
                 <button
                   type="button"
                   onClick={() => setCreating(false)}
-                  className="flex-1 px-6 py-2 rounded-lg bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+                  className="flex-1 px-6 py-2 rounded-lg bg-gray-900 text-white font-semibold hover:bg-blue-700 transition"
                 >
                   Cancel
                 </button>
@@ -136,7 +137,7 @@ function ShortUrls() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {isShortUrlsLoading ? (
-              <div className="w-full text-center text-blue-600 dark:text-blue-300 py-8">
+              <div className="w-full text-center text-blue-700 dark:text-blue-400 py-8">
                 Loading Short URLs...
               </div>
             ) : shortUrls.length === 0 ? (
@@ -144,64 +145,61 @@ function ShortUrls() {
                 No short URLs found.
               </div>
             ) : (
-              shortUrls.map((url) => (
-                <ShortUrlCard
-                  key={url.id}
-                  url={url}
-                  editFunc={handleEdit}
-                  deleteFunc={handleDelete}
-                />
-              ))
+              shortUrls.map((url) =>
+                editUrlId === url.id ? (
+                  <div
+                    key={url.id}
+                    className="flex flex-col gap-2 bg-white dark:bg-gray-900 rounded-xl shadow p-4 w-full relative"
+                  >
+                    <div className="flex flex-col gap-1 mb-2">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">
+                        Full URL
+                      </label>
+                      <input
+                        name="fullUrl"
+                        value={editData.fullUrl}
+                        onChange={handleEditChange}
+                        className="px-2 py-1 rounded border border-blue-300 dark:border-blue-800 bg-white dark:bg-gray-800 text-blue-900 dark:text-blue-100"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1 mb-2">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">
+                        Short URL
+                      </label>
+                      <input
+                        name="shortUrl"
+                        value={editData.shortUrl}
+                        onChange={handleEditChange}
+                        className="px-2 py-1 rounded border border-blue-300 dark:border-blue-800 bg-white dark:bg-gray-800 text-blue-900 dark:text-blue-100"
+                      />
+                    </div>
+                    <div className="flex gap-4 mt-2">
+                      <button
+                        className="flex-1 h-10 px-3 py-1 rounded bg-blue-700 text-white text-base font-semibold hover:bg-blue-800 transition"
+                        onClick={handleEditSave}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="flex-1 h-10 px-3 py-1 rounded bg-gray-300 text-blue-700 text-base font-semibold hover:bg-gray-400 transition dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-gray-900"
+                        onClick={() => setEditUrlId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <ShortUrlCard
+                    key={url.id}
+                    url={url}
+                    editFunc={handleEdit}
+                    deleteFunc={handleDelete}
+                  />
+                )
+              )
             )}
           </div>
         </div>
-
-        {/* Edit Modal */}
-        {editUrl && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4 text-blue-700 dark:text-blue-200">
-                Edit Short URL
-              </h2>
-              <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Full URL
-                <input
-                  name="fullUrl"
-                  value={editData.fullUrl}
-                  onChange={handleEditChange}
-                  className="w-full px-3 py-2 rounded border border-blue-200 dark:border-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 text-black dark:text-white transition mt-1"
-                  type="url"
-                  required
-                />
-              </label>
-              <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Short Code
-                <input
-                  name="shortUrl"
-                  value={editData.shortUrl}
-                  onChange={handleEditChange}
-                  className="w-full px-3 py-2 rounded border border-blue-200 dark:border-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-800 text-black dark:text-white transition mt-1"
-                  type="text"
-                  required
-                />
-              </label>
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={handleEditSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditUrl(null)}
-                  className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 dark:bg-gray-700 dark:hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );
