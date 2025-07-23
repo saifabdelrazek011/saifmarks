@@ -18,4 +18,5 @@ export const {
   ARCJET_ENV,
   ARCJET_KEY,
   SHORT_URL_DOMAIN,
+  ADMIN_EMAIL,
 } = process.env;

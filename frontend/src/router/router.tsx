@@ -4,11 +4,7 @@ import Notfound from "../pages/404";
 import Signin from "../pages/auth/Signin";
 import Signup from "../pages/auth/Signup";
 import ForgotPassword from "../pages/auth/ForgotPassword";
-import About from "../pages/static/About";
 import Contact from "../pages/static/Contact";
-import Help from "../pages/static/Help";
-import Policy from "../pages/static/Policy";
-import Terms from "../pages/static/Terms";
 import Dashboard from "../pages/user/Dashboard";
 import Profile from "../pages/user/Profile";
 import Settings from "../pages/user/Settings";
@@ -88,11 +84,7 @@ function Router() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Static Pages */}
-          <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Policy />} />
 
           {/* Developer Routes */}
           <Route

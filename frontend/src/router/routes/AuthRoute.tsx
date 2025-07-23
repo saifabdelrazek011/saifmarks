@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useDashboardContext } from "../../context/DashboardContext";
+import { useDashboardContext } from "../../context";
 import Loader from "../../components/Loader";
 
 function AuthRoute({ children }: { children: React.ReactNode }) {

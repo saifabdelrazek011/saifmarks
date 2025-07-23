@@ -18,6 +18,15 @@ function ShortUrlCard({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [onDeleteError, setDeleteError] = useState<string>("");
 
+  // Edit state
+  const [onEdit, setOnEdit] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string>("");
+  const [editData, setEditData] = useState({
+    fullUrl: url.fullUrl,
+    shortUrl: url.shortUrl,
+  });
+
   // Highlight logic
   let highlightedId = "";
   if (typeof window !== "undefined") {
@@ -59,6 +68,33 @@ function ShortUrlCard({
   const truncate = (str: string, n = 40) =>
     str.length > n ? str.slice(0, n - 1) + "…" : str;
 
+  // Edit handlers
+  const handleEditClick = () => {
+    setOnEdit(true);
+    setEditData({
+      fullUrl: url.fullUrl,
+      shortUrl: url.shortUrl,
+    });
+    setEditError("");
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditData({ ...editData, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSave = async () => {
+    setEditLoading(true);
+    setEditError("");
+    try {
+      await editFunc({ ...url, ...editData });
+      setOnEdit(false);
+    } catch (err: any) {
+      setEditError(err.message || "Failed to save changes");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   if (onDelete) {
     return (
       <div
@@ -90,6 +126,62 @@ function ShortUrlCard({
             {onDeleteError}
           </p>
         )}
+      </div>
+    );
+  }
+
+  if (onEdit) {
+    return (
+      <div
+        className={`flex flex-col gap-2 ${
+          isHighlighted ? highlightCard : "bg-white dark:bg-gray-900"
+        } rounded-xl shadow p-4 w-full relative`}
+      >
+        <div className="flex flex-col gap-1 mb-2">
+          <label className="text-xs text-gray-500 dark:text-gray-400">
+            Full URL
+          </label>
+          <input
+            name="fullUrl"
+            value={editData.fullUrl}
+            onChange={handleEditChange}
+            className="px-2 py-1 rounded border border-blue-300 dark:border-blue-800 bg-white dark:bg-gray-800 text-blue-900 dark:text-blue-100"
+            disabled={editLoading}
+          />
+        </div>
+        <div className="flex flex-col gap-1 mb-2">
+          <label className="text-xs text-gray-500 dark:text-gray-400">
+            Short URL
+          </label>
+          <input
+            name="shortUrl"
+            value={editData.shortUrl}
+            onChange={handleEditChange}
+            className="px-2 py-1 rounded border border-blue-300 dark:border-blue-800 bg-white dark:bg-gray-800 text-blue-900 dark:text-blue-100"
+            disabled={editLoading}
+          />
+        </div>
+        {editError && (
+          <p className="text-red-600 dark:text-red-400 text-xs mb-2">
+            {editError}
+          </p>
+        )}
+        <div className="flex gap-4 mt-2">
+          <button
+            className="flex-1 h-10 px-3 py-1 rounded bg-blue-700 text-white text-base font-semibold hover:bg-blue-800 transition"
+            onClick={handleEditSave}
+            disabled={editLoading}
+          >
+            {editLoading ? "Saving..." : "Save"}
+          </button>
+          <button
+            className="flex-1 h-10 px-3 py-1 rounded bg-gray-300 text-blue-700 text-base font-semibold hover:bg-gray-400 transition dark:bg-gray-800 dark:text-blue-200 dark:hover:bg-gray-900"
+            onClick={() => setOnEdit(false)}
+            disabled={editLoading}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     );
   }
@@ -189,7 +281,7 @@ function ShortUrlCard({
       )}
       <div className="flex gap-4 mt-4">
         <button
-          onClick={() => editFunc(url)}
+          onClick={handleEditClick}
           title="Edit"
           className="flex-1 h-10 px-3 py-1 rounded bg-blue-700 text-white text-base font-semibold hover:bg-gray-900 transition"
         >

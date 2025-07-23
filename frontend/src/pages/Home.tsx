@@ -1,71 +1,14 @@
 import { Link } from "react-router-dom";
 import { useDashboardContext } from "../context";
-import ToggleTheme from "../components/ThemeToggle";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
-  const { isAuthenticated, isAppLoading } = useDashboardContext();
+  const { isAuthenticated } = useDashboardContext();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex flex-col">
       {/* Header */}
-      <header className="flex justify-between items-center px-8 py-6 bg-white/80 dark:bg-gray-900/80 shadow-md backdrop-blur-md">
-        <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">
-          Saif<span className="text-blue-500 dark:text-blue-300">Marks</span>
-        </h1>
-        <div className="flex items-center space-x-4">
-          <ToggleTheme />
-          {isAppLoading ? (
-            <button
-              disabled
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow flex items-center gap-2 opacity-70 cursor-not-allowed"
-            >
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
-              </svg>
-              Loading...
-            </button>
-          ) : isAuthenticated ? (
-            <Link
-              to="/dashboard"
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow hover:scale-105 hover:from-blue-700 hover:to-blue-500 transition"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                to="/signin"
-                className="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow hover:scale-105 hover:from-blue-700 hover:to-blue-500 transition"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-400 to-blue-300 text-white font-semibold shadow hover:scale-105 hover:from-blue-500 hover:to-blue-400 transition"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex flex-1 flex-col items-center justify-center text-center px-4">

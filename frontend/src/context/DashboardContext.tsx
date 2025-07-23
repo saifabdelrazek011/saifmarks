@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-  useContext,
   createContext,
   useState,
   type ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import {
   type DashboardContextType,
@@ -34,20 +34,11 @@ import {
   shortenBookmarkUrl,
 } from "../services";
 
-const DashboardContext = createContext<DashboardContextType | undefined>(
+export const DashboardContext = createContext<DashboardContextType | undefined>(
   undefined
 );
-const globalError = import.meta.env.VITE_GLOBAL_ERROR;
 
-export const useDashboardContext = (): DashboardContextType => {
-  const context = useContext(DashboardContext);
-  if (context === undefined) {
-    throw new Error(
-      "useDashboardContext must be used within a DashboardProvider"
-    );
-  }
-  return context;
-};
+const globalError = import.meta.env.VITE_GLOBAL_ERROR;
 
 export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   if (!children) {
@@ -385,7 +376,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchShortUrls = async () => {
+  const fetchShortUrls = useCallback(async () => {
     setIsShortUrlsLoading(true);
     try {
       const urls = await getUserShortUrls();
@@ -417,7 +408,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsShortUrlsLoading(false);
     }
-  };
+  }, [userData.user.id]);
 
   const handleAddShortUrl = async (fullUrl: string, shortUrl?: string) => {
     setIsShortUrlsLoading(true);
@@ -438,6 +429,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     try {
       await updateShortUrl(id, fullUrl, shortUrl);
       await fetchShortUrls();
+      await fetchBookmarks();
     } finally {
       setIsShortUrlsLoading(false);
     }
@@ -448,6 +440,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     try {
       await deleteShortUrl(id);
       await fetchShortUrls();
+      await fetchBookmarks();
     } finally {
       setIsShortUrlsLoading(false);
     }
@@ -488,14 +481,32 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadAll = async () => {
       setIsAppLoading(true);
+      setIsUserLoading(true);
       await handleUpdateUserData();
-      await fetchBookmarks();
-      await fetchShortUrls();
+      setIsUserLoading(false);
       setIsAppLoading(false);
     };
     loadAll();
   }, []);
 
+  useEffect(() => {
+    if (
+      userData.success &&
+      userData.user.id &&
+      userData.user.emails.length > 0
+    ) {
+      setIsAuthenticated(true);
+      setUser(userData.user);
+      setIsVerified(
+        userData.user.emails.find((email) => email.isPrimary)?.isVerified ||
+          false
+      );
+      fetchBookmarks();
+      fetchShortUrls();
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, [userData]);
   const value: DashboardContextType = {
     // App loading state
     isAppLoading,

@@ -474,6 +474,7 @@ export class ShortUrlService {
 
       const requestedUrl = await this.prisma.shortUrl.findUnique({
         where: { id: shortUrlId },
+        include: { bookmark: true },
       });
 
       if (!requestedUrl) throw new NotFoundException('Short URL not found');
@@ -495,6 +496,19 @@ export class ShortUrlService {
         });
         if (existingShort && existingShort.id !== shortUrlId) {
           throw new BadRequestException('Short URL already in use.');
+        }
+      }
+
+      const connectedBookmark = requestedUrl?.bookmark;
+
+      if (connectedBookmark) {
+        const updatingBookmark = await this.prisma.bookmark.update({
+          where: { id: connectedBookmark.id },
+          data: { url: fullUrl },
+        });
+
+        if (!updatingBookmark) {
+          throw new Error('Bookmark update failed.');
         }
       }
 

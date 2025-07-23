@@ -211,6 +211,14 @@ export class UserService {
         throw new Error('Failed to delete user bookmarks');
       }
 
+      const shorturls = await this.prisma.shortUrl.deleteMany({
+        where: { createdById: userId },
+      });
+
+      if (!shorturls) {
+        throw new Error('Failed to delete user short URLs');
+      }
+
       const emails = await this.prisma.email.deleteMany({
         where: { userId },
       });

@@ -69,7 +69,6 @@ model Bookmark {
 
   userBookmarkId Int @default(autoincrement())
 
-  shortUrlId String?  @unique
   shortUrl   ShortUrl? 
 
   @@unique([userId, userBookmarkId])

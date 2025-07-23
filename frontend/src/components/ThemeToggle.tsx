@@ -1,4 +1,4 @@
-import { useDashboardContext } from "../context/DashboardContext";
+import { useDashboardContext } from "../context";
 import { FaSun, FaMoon, FaDesktop } from "react-icons/fa";
 
 const ThemeToggle = () => {

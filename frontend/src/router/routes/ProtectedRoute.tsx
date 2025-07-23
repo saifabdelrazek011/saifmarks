@@ -1,4 +1,4 @@
-import { useDashboardContext } from "../../context/DashboardContext";
+import { useDashboardContext } from "../../context";
 import { Navigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 
