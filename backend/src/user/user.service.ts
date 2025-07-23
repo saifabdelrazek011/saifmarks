@@ -43,7 +43,7 @@ export class UserService {
       // Update the user in the database
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
-        data: { ...dto },
+        data: { firstName: dto.firstName, lastName: dto.lastName },
         include: { emails: true },
       });
 

@@ -624,12 +624,29 @@ export class ShortUrlService {
 
       if (!bookmark || bookmark.userId !== userId)
         throw new NotFoundException('Bookmark not found.');
-      console.log('Bookmark found:', bookmark);
 
       if (bookmark.shortUrl) {
         throw new BadRequestException(
           'This bookmark already has a short URL. Please delete it first if you want to create a new one.',
         );
+      }
+
+      const existingShortUrl = await this.prisma.shortUrl.findFirst({
+        where: { fullUrl: bookmark.url, createdById: userId },
+      });
+
+      if (existingShortUrl) {
+        const updatedShortUrl = await this.prisma.shortUrl.update({
+          where: { id: existingShortUrl.id },
+          data: {
+            bookmarkId: bookmark.id,
+          },
+        });
+        return {
+          success: true,
+          message: 'We have connected the short URL for your bookmark.',
+          shortUrl: updatedShortUrl,
+        };
       }
 
       const short = await this.generateShortUrl(shortUrl);

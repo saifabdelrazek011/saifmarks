@@ -53,6 +53,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   if (!children) {
     throw new Error("DashboardProvider requires children");
   }
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
   const [userData, setUserData] = useState<UserDataType>({
     success: false,
@@ -85,52 +86,65 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [isShortUrlsLoading, setIsShortUrlsLoading] = useState(false);
 
   // shortDomain
-  const [shortDomain, setShortDomain] = useState<string>("go.died.pw");
+  const availableShortDomains = import.meta.env.VITE_AVAILABLE_SHORT_DOMAINS
+    ? import.meta.env.VITE_AVAILABLE_SHORT_DOMAINS.split(",")
+    : ["https://go.died.pw"];
+
+  const [shortDomain, setShortDomain] = useState<string>(
+    localStorage.getItem("shortDomain") ||
+      availableShortDomains[0] ||
+      "go.died.pw"
+  );
 
   // Themes Functions
   useEffect(() => {
     localStorage.setItem("shortDomain", shortDomain);
   }, [shortDomain]);
 
-  useEffect(() => {
-    const storedShortDomain = localStorage.getItem("shortDomain");
-    if (storedShortDomain) {
-      setShortDomain(storedShortDomain);
-    }
-  }, []);
-
   // Hide Welcome in Dashboard
-  const [hideWelcome, setHideWelcome] = useState<boolean>(false);
-  useEffect(() => {
-    const storedHideWelcome = localStorage.getItem("hideWelcome");
-    if (storedHideWelcome) {
-      setHideWelcome(storedHideWelcome === "true");
-    }
-  }, []);
+  const [hideWelcome, setHideWelcome] = useState<boolean>(
+    localStorage.getItem("hideWelcome") === "true" || false
+  );
 
   useEffect(() => {
     localStorage.setItem("hideWelcome", String(hideWelcome));
   }, [hideWelcome]);
 
-  // Themes
-  const [theme, setTheme] = useState<string>("dark");
+  const [theme, setTheme] = useState<"light" | "dark" | "system">(
+    (localStorage.getItem("theme") as "light" | "dark" | "system") || "system"
+  );
 
-  // Themes Functions
+  const getSystemTheme = () => {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+      return "dark";
+    return "light";
+  };
+
   useEffect(() => {
-    document.documentElement.classList.remove("light", "dark");
-    document.documentElement.classList.add(theme);
+    let appliedTheme = theme;
+    if (theme === "system") {
+      appliedTheme = getSystemTheme();
+    }
+    document.documentElement.classList.remove("light", "dark", "system");
+    document.documentElement.classList.add(appliedTheme);
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // On mount, set theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    setTheme(savedTheme);
-  }, []);
+    if (theme !== "system") return;
+    const handler = (e: MediaQueryListEvent) => {
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(e.matches ? "dark" : "light");
+    };
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [theme]);
 
-  // Themes Functions
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+    setTheme((prev) =>
+      prev === "light" ? "dark" : prev === "dark" ? "system" : "light"
+    );
   };
 
   const handleSendResetPassword = async (email: string) => {
@@ -224,6 +238,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Failed to update the Bookmark");
       }
       await fetchBookmarks();
+      await fetchShortUrls();
     } catch (error) {
       throw new Error(
         typeof error === "object" && error !== null && "message" in error
@@ -235,14 +250,18 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const handleDeleteBookmark = async (bookmarkId: string): Promise<void> => {
+  const handleDeleteBookmark = async (
+    bookmarkId: string,
+    deleteShortUrl: boolean
+  ): Promise<void> => {
     setIsBookmarksLoading(true);
     try {
-      const bookmark = await deleteBookmark(bookmarkId);
+      const bookmark = await deleteBookmark(bookmarkId, deleteShortUrl);
       if (!bookmark) {
         throw new Error("Failed to update the Bookmark");
       }
       await fetchBookmarks();
+      await fetchShortUrls();
     } catch (error) {
       throw new Error(
         typeof error === "object" && error !== null && "message" in error
@@ -456,17 +475,6 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
-    fetchShortUrls();
-  }, []);
-
-  // Get the current user data
-  useEffect(() => {
-    if ((!userData.success || !userData.user.id) && !globalError) {
-      handleUpdateUserData();
-    }
-  }, []);
-
   // Fetch bookmarks and setVerification state when user data is updated
   useEffect(() => {
     if (userData.success && userData.user.id) {
@@ -477,7 +485,21 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     );
   }, [userData]);
 
+  useEffect(() => {
+    const loadAll = async () => {
+      setIsAppLoading(true);
+      await handleUpdateUserData();
+      await fetchBookmarks();
+      await fetchShortUrls();
+      setIsAppLoading(false);
+    };
+    loadAll();
+  }, []);
+
   const value: DashboardContextType = {
+    // App loading state
+    isAppLoading,
+
     // User related properties
     user,
     userData,
@@ -519,6 +541,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
     // Settings
     // Themes toggle
+    theme,
     toggleTheme,
 
     // Hide Welcome

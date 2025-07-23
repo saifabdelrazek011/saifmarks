@@ -19,18 +19,13 @@ export class EmailService {
     token: string;
     subject: string;
   }): Promise<void> {
-    try {
-      const html = verifyEmail(token, frontendUrl);
+    const html = verifyEmail(token, frontendUrl);
 
-      await this.mailerService.sendMail({
-        to,
-        subject,
-        html,
-      });
-    } catch (error) {
-      console.error('Error sending verification email:', error);
-      throw error;
-    }
+    await this.mailerService.sendMail({
+      to,
+      subject,
+      html,
+    });
   }
 
   async sendResetPasswordCodeEmail({
@@ -40,17 +35,15 @@ export class EmailService {
     to: string;
     code: string | number;
   }) {
-    try {
-      const html = resetPasswordEmail(code, frontendUrl);
+    const html = resetPasswordEmail(code, frontendUrl);
 
-      await this.mailerService.sendMail({
-        to,
-        subject: `Reset Password Code`,
-        html,
-      });
-    } catch (error) {
-      console.error('Error sending verification email:', error);
-      throw error;
-    }
+    await this.mailerService.sendMail({
+      to,
+      subject: `Reset Password Code`,
+      html,
+    });
+  }
+  catch(error) {
+    throw error;
   }
 }

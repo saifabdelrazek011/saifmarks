@@ -97,7 +97,10 @@ export const changePassword = async (
     const response = await api.patch(`/users/password`, passwordData, {
       withCredentials: true,
     });
-    console.log(response);
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Failed to change password");
+    }
   } catch (error: any) {
     if (error instanceof AxiosError) {
       const message =

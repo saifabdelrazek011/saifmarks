@@ -309,6 +309,19 @@ export class BookmarkService {
         throw new Error('Failed to update bookmark');
       }
 
+      const connectedShortUrl = await this.prisma.shortUrl.findUnique({
+        where: { bookmarkId: bookmark.id },
+      });
+
+      if (connectedShortUrl) {
+        await this.prisma.shortUrl.update({
+          where: { id: connectedShortUrl.id },
+          data: {
+            fullUrl: dto.url,
+          },
+        });
+      }
+
       return {
         success: true,
         message: 'Bookmark updated successfully',
@@ -327,7 +340,11 @@ export class BookmarkService {
     }
   }
 
-  async deleteBookmark(userId: string, bookmarkId: string) {
+  async deleteBookmark(
+    userId: string,
+    bookmarkId: string,
+    deleteShortUrl: boolean = false,
+  ) {
     try {
       if (!userId) {
         throw new ForbiddenException('User is not authenticated');
@@ -335,15 +352,28 @@ export class BookmarkService {
       if (!bookmarkId || bookmarkId === 'null' || bookmarkId === 'invalidId') {
         throw new BadRequestException('Bookmark id is invalid');
       }
+
       const bookmark = await this.prisma.bookmark.findUnique({
         where: { id: bookmarkId, userId },
       });
       if (!bookmark) {
         throw new NotFoundException('Bookmark not found');
       }
+
+      const connectedShorturl = await this.prisma.shortUrl.findUnique({
+        where: { bookmarkId: bookmark.id },
+      });
+
+      if (connectedShorturl && deleteShortUrl) {
+        await this.prisma.shortUrl.delete({
+          where: { id: connectedShorturl.id },
+        });
+      }
+
       await this.prisma.bookmark.delete({
         where: { id: bookmarkId },
       });
+
       return { success: true, message: 'Bookmark deleted successfully' };
     } catch (error) {
       if (

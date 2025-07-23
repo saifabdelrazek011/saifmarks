@@ -2,8 +2,8 @@
 import { useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import { useDashboardContext } from "../../context";
-
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const Profile = () => {
   const {
@@ -40,6 +40,39 @@ const Profile = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleteSuccess, setDeleteSuccess] = useState("");
+
+  // Hide profile success/error after 10s
+  useEffect(() => {
+    if (profileSuccess || profileError) {
+      const timer = setTimeout(() => {
+        setProfileSuccess("");
+        setProfileError("");
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [profileSuccess, profileError]);
+
+  // Hide password success/error after 10s
+  useEffect(() => {
+    if (pwSuccess || pwError) {
+      const timer = setTimeout(() => {
+        setPwSuccess("");
+        setPwError("");
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [pwSuccess, pwError]);
+
+  // Hide delete success/error after 10s
+  useEffect(() => {
+    if (deleteSuccess || deleteError) {
+      const timer = setTimeout(() => {
+        setDeleteSuccess("");
+        setDeleteError("");
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [deleteSuccess, deleteError]);
 
   // Handle profile form change
   const handleChange = (e: any) => {
@@ -107,12 +140,12 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-        <div className="max-w-xl mx-auto py-12 px-4">
-          {/* Profile Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mb-8">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-              <div>
+      <div className="min-h-screen transition-colors duration-300">
+        <div className="max-w-4xl mx-auto py-12 px-4">
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Profile Card */}
+            <div className="flex-1 bg-white/80 dark:bg-gray-900/80 rounded-xl shadow-lg p-8 mb-8">
+              <div className="mb-6">
                 <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-1">
                   Profile
                 </h1>
@@ -124,200 +157,216 @@ const Profile = () => {
                   </span>
                 </p>
               </div>
-            </div>
-            <form
-              className="space-y-5"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                setProfileSuccess("");
-                setProfileError("");
-                const formDataToSubmit = {
-                  firstName: formData.firstName.trim(),
-                  lastName: formData.lastName.trim(),
-                };
-                if (!formDataToSubmit.firstName && !formDataToSubmit.lastName) {
-                  setProfileError("Please fill at least one field.");
-                  setLoading(false);
-                  return;
-                }
-                await handleEditUserData(formDataToSubmit)
-                  .then(() => {
-                    setProfileSuccess("Profile updated successfully!");
-                  })
-                  .catch((e: { message: any }) => {
-                    setProfileError(e.message || "Error updating user data.");
-                  })
-                  .finally(() => setLoading(false));
-              }}
-            >
-              <div>
-                <label
-                  className="block text-gray-700 dark:text-gray-200 mb-1"
-                  htmlFor="firstName"
-                >
-                  First Name
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label
-                  className="block text-gray-700 dark:text-gray-200 mb-1"
-                  htmlFor="lastName"
-                >
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <span className="block text-gray-700 dark:text-gray-200 mb-1">
-                  Joined
-                </span>
-                <span className="text-gray-900 dark:text-gray-100">
-                  {userData.user.createdAt
-                    ? new Date(userData.user.createdAt).toLocaleDateString()
-                    : "N/A"}
-                </span>
-              </div>
-              {profileSuccess && (
-                <div className="text-green-600 font-semibold">
-                  {profileSuccess}
-                </div>
-              )}
-              {profileError && (
-                <div className="text-red-600 font-semibold">{profileError}</div>
-              )}
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 rounded-lg text-white font-semibold transition bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                >
-                  {loading ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Change Password Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8">
-            <form onSubmit={changeUserPassword} className="space-y-5">
-              <label className="text-lg font-semibold block mb-2 text-blue-700 dark:text-blue-400">
-                Change Password
-              </label>
-              <div>
-                <label
-                  htmlFor="current-password"
-                  className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                  Current Password
-                </label>
-                <input
-                  type={showPasswords ? "text" : "password"}
-                  id="current-password"
-                  name="currentPassword"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your current password"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="new-password"
-                  className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                  New Password
-                </label>
-                <input
-                  type={showPasswords ? "text" : "password"}
-                  id="new-password"
-                  name="newPassword"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your new password"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="confirm-new-password"
-                  className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
-                >
-                  Confirm New Password
-                </label>
-                <input
-                  type={showPasswords ? "text" : "password"}
-                  id="confirm-new-password"
-                  name="confirmNewPassword"
-                  value={passwordData.confirmNewPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Confirm your new password"
-                  required
-                />
-              </div>
-              <div className="flex items-center mt-2">
-                <input
-                  type="checkbox"
-                  id="show-passwords"
-                  className="mr-2"
-                  checked={showPasswords}
-                  onChange={(e) => setShowPasswords(e.target.checked)}
-                />
-                <label
-                  htmlFor="show-passwords"
-                  className="text-sm text-gray-700 dark:text-gray-200"
-                >
-                  Show Passwords
-                </label>
-              </div>
-              {pwSuccess && (
-                <div className="text-green-600 font-semibold mt-2">
-                  {pwSuccess}
-                </div>
-              )}
-              {pwError && (
-                <div className="text-red-600 font-semibold mt-2">{pwError}</div>
-              )}
-              <div className="flex justify-end mt-4">
-                <div className="flex-1 flex items-center">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-blue-600 hover:underline dark:text-blue-400 mr-4"
+              <form
+                className="space-y-5"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setLoading(true);
+                  setProfileSuccess("");
+                  setProfileError("");
+                  const formDataToSubmit = {
+                    firstName: formData.firstName.trim(),
+                    lastName: formData.lastName.trim(),
+                  };
+                  if (
+                    !formDataToSubmit.firstName &&
+                    !formDataToSubmit.lastName
+                  ) {
+                    setProfileError("Please fill at least one field.");
+                    setLoading(false);
+                    return;
+                  }
+                  await handleEditUserData(formDataToSubmit)
+                    .then(() => {
+                      setProfileSuccess("Profile updated successfully!");
+                    })
+                    .catch((e: { message: any }) => {
+                      setProfileError(e.message || "Error updating user data.");
+                    })
+                    .finally(() => setLoading(false));
+                }}
+              >
+                <div>
+                  <label
+                    className="block text-gray-700 dark:text-gray-200 mb-1"
+                    htmlFor="firstName"
                   >
-                    Forgot Password?
-                  </Link>
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
-                <button
-                  type="submit"
-                  disabled={pwLoading}
-                  className="px-6 py-3 rounded-lg text-white font-semibold transition bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                >
-                  {pwLoading ? "Changing..." : "Change Password"}
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label
+                    className="block text-gray-700 dark:text-gray-200 mb-1"
+                    htmlFor="lastName"
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <span className="block text-gray-700 dark:text-gray-200 mb-1">
+                    Email
+                  </span>
+                  <span className="text-gray-900 dark:text-gray-100 font-semibold">
+                    {userData.user.emails.find((email) => email.isPrimary)
+                      ?.email || "N/A"}
+                  </span>
+                </div>
+                {profileSuccess && (
+                  <div className="text-green-600 font-semibold mb-2">
+                    {profileSuccess}
+                  </div>
+                )}
+                {profileError && (
+                  <div className="text-red-600 font-semibold mb-2">
+                    {profileError}
+                  </div>
+                )}
+                <div className="flex items-center justify-between mt-4">
+                  <div>
+                    <span className="block text-gray-700 dark:text-gray-200 mb-1">
+                      Joined
+                    </span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {userData.user.createdAt
+                        ? new Date(userData.user.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-3 rounded-lg text-white font-semibold transition bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  >
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Change Password Card */}
+            <div className="flex-1 bg-white/80 dark:bg-gray-900/80 rounded-xl shadow-lg p-8 mb-8">
+              <form onSubmit={changeUserPassword} className="space-y-5">
+                <label className="text-lg font-semibold block mb-2 text-blue-700 dark:text-blue-400">
+                  Change Password
+                </label>
+                <div>
+                  <label
+                    htmlFor="current-password"
+                    className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    Current Password
+                  </label>
+                  <input
+                    type={showPasswords ? "text" : "password"}
+                    id="current-password"
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter your current password"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="new-password"
+                    className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    New Password
+                  </label>
+                  <input
+                    type={showPasswords ? "text" : "password"}
+                    id="new-password"
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter your new password"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="confirm-new-password"
+                    className="block mb-1 font-medium text-gray-700 dark:text-gray-200"
+                  >
+                    Confirm New Password
+                  </label>
+                  <input
+                    type={showPasswords ? "text" : "password"}
+                    id="confirm-new-password"
+                    name="confirmNewPassword"
+                    value={passwordData.confirmNewPassword}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Confirm your new password"
+                    required
+                  />
+                </div>
+                <div className="flex items-center mt-2">
+                  <input
+                    type="checkbox"
+                    id="show-passwords"
+                    className="mr-2"
+                    checked={showPasswords}
+                    onChange={(e) => setShowPasswords(e.target.checked)}
+                  />
+                  <label
+                    htmlFor="show-passwords"
+                    className="text-sm text-gray-700 dark:text-gray-200"
+                  >
+                    Show Passwords
+                  </label>
+                </div>
+                {pwSuccess && (
+                  <div className="text-green-600 font-semibold mt-2">
+                    {pwSuccess}
+                  </div>
+                )}
+                {pwError && (
+                  <div className="text-red-600 font-semibold mt-2">
+                    {pwError}
+                  </div>
+                )}
+                <div className="flex justify-end mt-4">
+                  <div className="flex-1 flex items-center">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-blue-600 hover:underline dark:text-blue-400 mr-4"
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={pwLoading}
+                    className="px-6 py-3 rounded-lg text-white font-semibold transition bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  >
+                    {pwLoading ? "Changing..." : "Change Password"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
 
           {/* Delete User Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 mt-8">
+          <div className="bg-white/80 dark:bg-gray-900/80 rounded-xl shadow-lg p-8 mt-8">
             <label className="text-lg font-semibold block mb-2 text-red-600 dark:text-red-400">
               Delete Account
             </label>
@@ -409,5 +458,4 @@ const Profile = () => {
     </DashboardLayout>
   );
 };
-
 export default Profile;

@@ -22,12 +22,12 @@ const Navbar = ({ onSidebarOpen }: { onSidebarOpen?: () => void }) => {
         Welcome{user?.firstName ? `, ${user.firstName}` : ""}!
       </h1>
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <Link to="/profile" title="Profile">
           <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-bold text-xl shadow hover:ring-2 hover:ring-blue-500 transition">
             {user?.firstName ? user.firstName[0].toUpperCase() : "U"}
           </div>
         </Link>
-        <ThemeToggle />
       </div>
     </header>
   );

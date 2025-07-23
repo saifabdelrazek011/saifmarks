@@ -3,9 +3,9 @@ import { useDashboardContext } from "../../context/DashboardContext";
 import Loader from "../../components/Loader";
 
 function VerifyRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isUserLoading, isVerified } = useDashboardContext();
+  const { isAuthenticated, isAppLoading, isVerified } = useDashboardContext();
 
-  if (isUserLoading) {
+  if (isAppLoading) {
     return <Loader />;
   }
 
