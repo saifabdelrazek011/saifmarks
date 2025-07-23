@@ -33,7 +33,7 @@ SaifMarks is a fullstack web application for managing bookmarks and short URLs. 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/saifmarks.git
+   git clone https://github.com/saifabdelrazek011/saifmarks.git
    cd saifmarks
    ```
 
