@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Controller, Get } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
@@ -7,6 +7,14 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ARCJET_KEY } from '../config';
+
+@Controller('test')
+export class TestController {
+  @Get()
+  test() {
+    return { message: 'API is working!' };
+  }
+}
 
 // Arcjet
 import {
@@ -43,14 +51,7 @@ import { ShortUrlModule } from './shorturl/shorturl.module';
 
           allow: [
             'CATEGORY:SEARCH_ENGINE', // Google, Bing, etc
-
-            // Uncomment to allow these other common bot categories
-
-            // See the full list at https://arcjet.com/bot-list
-
-            //"CATEGORY:MONITOR", // Uptime monitoring services
-
-            //"CATEGORY:PREVIEW", // Link previews e.g. Slack, Discord
+            'KUMA_MONITOR',
           ],
         }),
 
@@ -73,7 +74,7 @@ import { ShortUrlModule } from './shorturl/shorturl.module';
     EmailModule,
     ShortUrlModule,
   ],
-  controllers: [],
+  controllers: [TestController],
   providers: [
     {
       provide: APP_GUARD,
