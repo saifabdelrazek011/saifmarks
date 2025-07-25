@@ -67,7 +67,7 @@ const Bookmark = ({ bookmark, editFunction, setOnEdit }: BookmarkProps) => {
 
   const handleCopy = () => {
     if (!bookmarkShortUrl) return;
-    const shortUrl = `https://${shortDomain.replace(/\/$/, "")}/${
+    const shortUrl = `${shortDomain.replace(/\/$/, "")}/${
       bookmarkShortUrl.shortUrl
     }`;
     if (navigator.clipboard) {
