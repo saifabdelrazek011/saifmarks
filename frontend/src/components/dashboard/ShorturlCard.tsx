@@ -42,7 +42,7 @@ function ShortUrlCard({
     "bg-gradient-to-br from-blue-100 via-white to-blue-200 dark:from-blue-900 dark:via-gray-900 dark:to-blue-950 border-2 border-blue-400 dark:border-blue-700 shadow-lg";
 
   const handleCopy = () => {
-    const shortUrl = `https://${shortDomain.replace(/\/$/, "")}/${
+    const shortUrl = `${shortDomain.replace(/\/$/, "")}/${
       url.shortUrl
     }`;
     if (navigator.clipboard) {
