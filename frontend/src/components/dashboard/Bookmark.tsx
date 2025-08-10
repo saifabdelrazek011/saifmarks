@@ -194,13 +194,13 @@ const Bookmark = ({ bookmark, editFunction, setOnEdit }: BookmarkProps) => {
               )}
             </button>
             <a
-              href={`https://${shortDomain.replace(/\/$/, "")}/${
+              href={`${shortDomain.replace(/\/$/, "")}/${
                 bookmarkShortUrl.shortUrl
               }`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-2 py-1 rounded bg-blue-700 text-white font-semibold text-sm dark:bg-blue-900"
-              title={`https://${shortDomain.replace(/\/$/, "")}/${
+              title={`${shortDomain.replace(/\/$/, "")}/${
                 bookmarkShortUrl.shortUrl
               }`}
             >
