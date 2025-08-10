@@ -8,9 +8,14 @@ import { EmailModule } from './email/email.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ARCJET_KEY } from '../config';
 
-@Controller('test')
-export class TestController {
+
+@Controller('')
+export class MainController {
   @Get()
+  main() {
+    return { message: 'Welcome to SaifMARKs Backend! || This mean that the service running well and any error is unexpected' };
+  }
+  @Get('test')
   test() {
     return { message: 'API is working!' };
   }
@@ -74,7 +79,7 @@ import { ShortUrlModule } from './shorturl/shorturl.module';
     EmailModule,
     ShortUrlModule,
   ],
-  controllers: [TestController],
+  controllers: [MainController],
   providers: [
     {
       provide: APP_GUARD,
