@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useDashboardContext } from "../../context";
 import { useNavigate, Link } from "react-router-dom";
+import SignoutBtn from "../../components/SignoutBtn";
 
 function Verify() {
   const { userData, handleVerifyUserEmail, isVerified } = useDashboardContext();
@@ -98,12 +99,19 @@ function Verify() {
         <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400 tracking-tight">
           Saif<span className="text-blue-500 dark:text-blue-300">Marks</span>
         </h1>
-        <Link
+        <div className="flex gap-5">
+          <div className="w-25">
+            <SignoutBtn />
+          </div>
+                 
+                          <Link
           to="/"
           className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
         >
           Home
         </Link>
+        </div>
+
       </header>
 
       {/* Main Content */}

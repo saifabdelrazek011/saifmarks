@@ -19,7 +19,7 @@ function NavBar({ hideContact = false }) {
             to="/contact"
             className="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold shadow hover:scale-105 hover:from-blue-700 hover:to-blue-500 transition"
           >
-            Contact Us
+            Contact
           </Link>
         ) : (
           <Link

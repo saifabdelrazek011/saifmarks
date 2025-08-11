@@ -13,7 +13,9 @@ import { ARCJET_KEY } from '../config';
 export class MainController {
   @Get()
   main() {
-    return { message: 'Welcome to SaifMARKs Backend! || This mean that the service running well and any error is unexpected' };
+    return {
+      message: "Welcome to the SaifMARKs Backend API! The service is running correctly. If you see any errors, they are unexpected. Have a productive development session!",
+    };
   }
   @Get('test')
   test() {
